@@ -9,3 +9,21 @@
    npm install
    npm run tauri dev
    ```
+
+4. ドメインモデル管理用クレートの作成
+
+   ```bash
+   cargo new src-model --vcs none --lib
+   ```
+
+5. アプリケーションサービス管理用のクレートの作成
+
+    ```bash
+    cargo new src-application --vcs none --lib
+    ```
+
+6. in memory リポジトリ管理用のクレートの作成
+
+    ```bash
+    cargo new src-in-memory-infrastructure --vcs none --lib
+    ```
