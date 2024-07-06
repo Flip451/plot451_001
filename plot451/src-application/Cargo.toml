@@ -4,3 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0.86"
+serde = { version = "1.0.203", features = ["derive"] }
+thiserror = "1.0.61"
+src-domain = { path = "../src-domain" }
+
+[dev-dependencies]
+tokio = { version = "1.38.0", features = ["full"] }
+src-in-memory-infrastructure = { path = "../src-in-memory-infrastructure" }

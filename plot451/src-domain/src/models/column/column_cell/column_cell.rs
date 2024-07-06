@@ -39,7 +39,7 @@ impl ColumnCell {
 }
 
 #[derive(Debug, Error)]
-enum ColumnCellError {}
+pub enum ColumnCellError {}
 
 impl Entity for ColumnCell {
     type Identity = ColumnCellId;

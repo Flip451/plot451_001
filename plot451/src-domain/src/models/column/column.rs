@@ -47,6 +47,10 @@ impl Column {
         &self.name
     }
 
+    pub fn directory_id(&self) -> &ColumnDirectoryId {
+        &self.directory
+    }
+
     pub fn cells(&self) -> &Vec<ColumnCellId> {
         &self.cells
     }
@@ -119,12 +123,6 @@ mod tests {
     use super::super::column_cell::column_cell_id::ColumnCellId;
 
     use super::Column;
-
-    impl Column {
-        pub fn get_directory_id(&self) -> &ColumnDirectoryId {
-            &self.directory
-        }
-    }
 
     #[test]
     fn test_change_order() {

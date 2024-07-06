@@ -34,7 +34,7 @@ impl ValueObject for ColumnCellValue {
 }
 
 impl ColumnCellValue {
-    fn parse(str: &str) -> Result<Self, ColumnCellValueError> {
+    pub fn parse(str: &str) -> Result<Self, ColumnCellValueError> {
         let str = str.trim();
         if str.is_empty() {
             return Ok(Self { value: None });

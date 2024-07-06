@@ -48,7 +48,7 @@ impl ColumnDirectory {
 }
 
 #[derive(Debug, Error)]
-enum ColumnDirectoryError {}
+pub enum ColumnDirectoryError {}
 
 impl Entity for ColumnDirectory {
     type Identity = ColumnDirectoryId;
