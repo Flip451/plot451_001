@@ -101,7 +101,7 @@ impl IColumnRepository for InMemoryColumnRepository {
     async fn save(&self, column: &Column) -> ColumnRepositoryResult<ColumnId> {
         let mut column = column.clone();
         let mut store = self.write_store_ref();
-        let id = match column.id() {
+        let id = match column.id_wrapped() {
             Some(id) => id.clone(),
             None => {
                 let id = Self::next_column_id(&mut store);
@@ -141,14 +141,14 @@ impl IColumnRepository for InMemoryColumnRepository {
         for cell_id in column.cells() {
             store.cell_store.remove(cell_id);
         }
-        store.column_store.remove(column.id().as_ref().unwrap());
+        store.column_store.remove(column.id());
         Ok(())
     }
 
     async fn save_cell(&self, cell: &ColumnCell) -> ColumnRepositoryResult<ColumnCellId> {
         let mut cell = cell.clone();
         let mut store = self.write_store_ref();
-        let id = match cell.id() {
+        let id = match cell.id_wrapped() {
             Some(id) => id.clone(),
             None => {
                 let id = Self::next_cell_id(&mut store);
@@ -202,7 +202,7 @@ impl IColumnRepository for InMemoryColumnRepository {
 
     async fn delete_cell(&self, cell: ColumnCell) -> ColumnRepositoryResult<()> {
         let mut store = self.write_store_ref();
-        store.cell_store.remove(cell.id().as_ref().unwrap());
+        store.cell_store.remove(cell.id());
         Ok(())
     }
 
@@ -226,7 +226,7 @@ impl IColumnRepository for InMemoryColumnRepository {
     ) -> ColumnRepositoryResult<ColumnDirectoryId> {
         let mut directory = directory.clone();
         let mut store = self.write_store_ref();
-        let id = match directory.id() {
+        let id = match directory.id_wrapped() {
             Some(id) => id.clone(),
             None => {
                 let id = Self::next_directory_id(&mut store);
@@ -265,7 +265,7 @@ impl IColumnRepository for InMemoryColumnRepository {
 
     async fn delete_directory(&self, directory: ColumnDirectory) -> ColumnRepositoryResult<()> {
         let mut store = self.write_store_ref();
-        Self::delete_directory_and_contents(&mut store, directory.id().as_ref().unwrap().clone());
+        Self::delete_directory_and_contents(&mut store, directory.id().clone());
         Ok(())
     }
 }

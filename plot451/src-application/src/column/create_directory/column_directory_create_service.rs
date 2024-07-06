@@ -18,10 +18,10 @@ pub type ColumnDirectoryCreateServiceResult<T> =
     anyhow::Result<T, ColumnDirectoryCreateServiceError>;
 
 pub trait IColumnDirectoryCreateService {
-    async fn handle(
+    fn handle(
         &self,
         command: ColumnDirectoryCreateCommand,
-    ) -> ColumnDirectoryCreateServiceResult<ColumnDirectoryCreateOutputData>;
+    ) -> impl std::future::Future<Output = ColumnDirectoryCreateServiceResult<ColumnDirectoryCreateOutputData>> + Send;
 }
 
 #[derive(Debug, Error)]

@@ -13,10 +13,10 @@ use super::{
 pub type ColumnDirectoryContentsListServiceResult<T> = anyhow::Result<T, ColumnDirectoryContentsListServiceError>;
 
 pub trait IColumnDirectoryContentsListService {
-    async fn handle(
+    fn handle(
         &self,
         command: ColumnDirectoryContentsListCommand,
-    ) -> ColumnDirectoryContentsListServiceResult<ColumnDirectoryContentsListOutputData>;
+    ) -> impl std::future::Future<Output = ColumnDirectoryContentsListServiceResult<ColumnDirectoryContentsListOutputData>> + Send;
 }
 
 #[derive(Debug, Error)]

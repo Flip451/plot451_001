@@ -35,8 +35,8 @@ where
 
 impl<'a, 'b, CR, TR> ITableListService for TableListService<'a, 'b, CR, TR>
 where
-    CR: IColumnRepository,
-    TR: ITableRepository,
+    CR: IColumnRepository + Sync,
+    TR: ITableRepository + Sync,
 {
     async fn handle(
         &self,
@@ -50,8 +50,6 @@ where
 
         let mut list_of_table_with_columns_and_cell: Vec<TableWithColumnsAndCells> = vec![];
         for table in tables.iter() {
-            let table_id = table.id().as_ref().unwrap().clone();
-            let table_name = table.name().clone();
             let column_ids = table.columns();
             let columns = self
                 .column_repository
@@ -61,7 +59,7 @@ where
 
             let mut list_of_column_with_cells: Vec<ColumnWithCells> = vec![];
             for column in columns.iter() {
-                let column_id = column.id().as_ref().unwrap().clone();
+                let column_id = column.id().clone();
                 let column_name = column.name().clone();
                 let cell_ids = column.cells();
                 let cells = self
@@ -73,7 +71,7 @@ where
                 list_of_column_with_cells.push(column_with_cells);
             }
             let table_with_columns_and_cells =
-                TableWithColumnsAndCells::new(table_id, table_name, list_of_column_with_cells);
+                TableWithColumnsAndCells::new(table, list_of_column_with_cells);
             list_of_table_with_columns_and_cell.push(table_with_columns_and_cells)
         }
 
@@ -146,8 +144,8 @@ mod tests {
             ColumnName::new("column_name_1".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![
-                cell1.id().as_ref().unwrap().clone(),
-                cell2.id().as_ref().unwrap().clone(),
+                cell1.id().clone(),
+                cell2.id().clone(),
             ],
         );
 
@@ -157,8 +155,8 @@ mod tests {
             ColumnName::new("column_name_2".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![
-                cell3.id().as_ref().unwrap().clone(),
-                cell4.id().as_ref().unwrap().clone(),
+                cell3.id().clone(),
+                cell4.id().clone(),
             ],
         );
 
@@ -168,9 +166,9 @@ mod tests {
             ColumnName::new("column_name_3".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![
-                cell5.id().as_ref().unwrap().clone(),
-                cell6.id().as_ref().unwrap().clone(),
-                cell7.id().as_ref().unwrap().clone(),
+                cell5.id().clone(),
+                cell6.id().clone(),
+                cell7.id().clone(),
             ],
         );
 
@@ -180,8 +178,8 @@ mod tests {
             Some(table_id1.clone()),
             TableName::new("table_name_1".to_string())?,
             vec![
-                column1.id().as_ref().unwrap().clone(),
-                column2.id().as_ref().unwrap().clone(),
+                column1.id().clone(),
+                column2.id().clone(),
             ],
         )?;
 
@@ -190,8 +188,8 @@ mod tests {
             Some(table_id2.clone()),
             TableName::new("table_name_2".to_string())?,
             vec![
-                column2.id().as_ref().unwrap().clone(),
-                column3.id().as_ref().unwrap().clone(),
+                column2.id().clone(),
+                column3.id().clone(),
             ],
         )?;
 
@@ -220,33 +218,33 @@ mod tests {
 
         let expected = vec![
             TableInOutputData {
-                table_id: table1.id().as_ref().unwrap().clone_value(),
+                table_id: table1.id().clone_value(),
                 table_name: table1.name().clone_value(),
                 columns: vec![
                     ColumnInOutputData {
-                        column_id: column1.id().as_ref().unwrap().clone_value(),
+                        column_id: column1.id().clone_value(),
                         column_name: column1.name().clone_value(),
                         cells: vec![
                             ColumnCellInOutputData {
-                                cell_id: cell1.id().as_ref().unwrap().clone_value(),
+                                cell_id: cell1.id().clone_value(),
                                 cell_value: cell1.cell_value().clone_value(),
                             },
                             ColumnCellInOutputData {
-                                cell_id: cell2.id().as_ref().unwrap().clone_value(),
+                                cell_id: cell2.id().clone_value(),
                                 cell_value: cell2.cell_value().clone_value(),
                             },
                         ],
                     },
                     ColumnInOutputData {
-                        column_id: column2.id().as_ref().unwrap().clone_value(),
+                        column_id: column2.id().clone_value(),
                         column_name: column2.name().clone_value(),
                         cells: vec![
                             ColumnCellInOutputData {
-                                cell_id: cell3.id().as_ref().unwrap().clone_value(),
+                                cell_id: cell3.id().clone_value(),
                                 cell_value: cell3.cell_value().clone_value(),
                             },
                             ColumnCellInOutputData {
-                                cell_id: cell4.id().as_ref().unwrap().clone_value(),
+                                cell_id: cell4.id().clone_value(),
                                 cell_value: cell4.cell_value().clone_value(),
                             },
                         ],
@@ -254,37 +252,37 @@ mod tests {
                 ],
             },
             TableInOutputData {
-                table_id: table2.id().as_ref().unwrap().clone_value(),
+                table_id: table2.id().clone_value(),
                 table_name: table2.name().clone_value(),
                 columns: vec![
                     ColumnInOutputData {
-                        column_id: column2.id().as_ref().unwrap().clone_value(),
+                        column_id: column2.id().clone_value(),
                         column_name: column2.name().clone_value(),
                         cells: vec![
                             ColumnCellInOutputData {
-                                cell_id: cell3.id().as_ref().unwrap().clone_value(),
+                                cell_id: cell3.id().clone_value(),
                                 cell_value: cell3.cell_value().clone_value(),
                             },
                             ColumnCellInOutputData {
-                                cell_id: cell4.id().as_ref().unwrap().clone_value(),
+                                cell_id: cell4.id().clone_value(),
                                 cell_value: cell4.cell_value().clone_value(),
                             },
                         ],
                     },
                     ColumnInOutputData {
-                        column_id: column3.id().as_ref().unwrap().clone_value(),
+                        column_id: column3.id().clone_value(),
                         column_name: column3.name().clone_value(),
                         cells: vec![
                             ColumnCellInOutputData {
-                                cell_id: cell5.id().as_ref().unwrap().clone_value(),
+                                cell_id: cell5.id().clone_value(),
                                 cell_value: cell5.cell_value().clone_value(),
                             },
                             ColumnCellInOutputData {
-                                cell_id: cell6.id().as_ref().unwrap().clone_value(),
+                                cell_id: cell6.id().clone_value(),
                                 cell_value: cell6.cell_value().clone_value(),
                             },
                             ColumnCellInOutputData {
-                                cell_id: cell7.id().as_ref().unwrap().clone_value(),
+                                cell_id: cell7.id().clone_value(),
                                 cell_value: cell7.cell_value().clone_value(),
                             },
                         ],

@@ -11,21 +11,21 @@ pub type ColumnRepositoryResult<T> = anyhow::Result<T, ColumnRepositoryError>;
 type Result<T> = ColumnRepositoryResult<T>;
 
 pub trait IColumnRepository {
-    async fn save(&self, column: &Column) -> Result<ColumnId>;
-    async fn find(&self, id: &ColumnId) -> Result<Option<Column>>;
-    async fn find_by_ids(&self, ids: &Vec<ColumnId>) -> Result<Vec<Column>>;
-    async fn find_by_directory_id(&self, directory_id: &ColumnDirectoryId) -> Result<Vec<Column>>;
-    async fn find_all(&self) -> Result<Vec<Column>>;
-    async fn delete(&self, column: Column) -> Result<()>;
-    async fn save_cell(&self, cell: &ColumnCell) -> Result<ColumnCellId>;
-    async fn find_cell(&self, id: &ColumnCellId) -> Result<Option<ColumnCell>>;
-    async fn find_cells_by_column_id(&self, column_id: &ColumnId) -> Result<Vec<ColumnCell>>;
-    async fn find_cells_by_ids(&self, ids: &Vec<ColumnCellId>) -> Result<Vec<ColumnCell>>;
-    async fn delete_cell(&self, cell: ColumnCell) -> Result<()>;
-    async fn save_directory(&self, directory: &ColumnDirectory) -> Result<ColumnDirectoryId>;
-    async fn find_directory(&self, id: &ColumnDirectoryId) -> Result<Option<ColumnDirectory>>;
-    async fn find_children_directories(&self, parent_id: &ColumnDirectoryId) -> Result<Vec<ColumnDirectory>>;
-    async fn delete_directory(&self, directory: ColumnDirectory) -> Result<()>;
+    fn save(&self, column: &Column) -> impl std::future::Future<Output = Result<ColumnId>> + Send;
+    fn find(&self, id: &ColumnId) -> impl std::future::Future<Output = Result<Option<Column>>> + Send;
+    fn find_by_ids(&self, ids: &Vec<ColumnId>) -> impl std::future::Future<Output = Result<Vec<Column>>> + Send;
+    fn find_by_directory_id(&self, directory_id: &ColumnDirectoryId) -> impl std::future::Future<Output = Result<Vec<Column>>> + Send;
+    fn find_all(&self) -> impl std::future::Future<Output = Result<Vec<Column>>> + Send;
+    fn delete(&self, column: Column) -> impl std::future::Future<Output = Result<()>> + Send;
+    fn save_cell(&self, cell: &ColumnCell) -> impl std::future::Future<Output = Result<ColumnCellId>> + Send;
+    fn find_cell(&self, id: &ColumnCellId) -> impl std::future::Future<Output = Result<Option<ColumnCell>>> + Send;
+    fn find_cells_by_column_id(&self, column_id: &ColumnId) -> impl std::future::Future<Output = Result<Vec<ColumnCell>>> + Send;
+    fn find_cells_by_ids(&self, ids: &Vec<ColumnCellId>) -> impl std::future::Future<Output = Result<Vec<ColumnCell>>> + Send;
+    fn delete_cell(&self, cell: ColumnCell) -> impl std::future::Future<Output = Result<()>> + Send;
+    fn save_directory(&self, directory: &ColumnDirectory) -> impl std::future::Future<Output = Result<ColumnDirectoryId>> + Send;
+    fn find_directory(&self, id: &ColumnDirectoryId) -> impl std::future::Future<Output = Result<Option<ColumnDirectory>>> + Send;
+    fn find_children_directories(&self, parent_id: &ColumnDirectoryId) -> impl std::future::Future<Output = Result<Vec<ColumnDirectory>>> + Send;
+    fn delete_directory(&self, directory: ColumnDirectory) -> impl std::future::Future<Output = Result<()>> + Send;
 }
 
 #[derive(Debug, Error)]

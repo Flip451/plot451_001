@@ -28,7 +28,11 @@ impl Table {
     }
 
     // getter & setter
-    pub fn id(&self) -> &Option<TableId> {
+    pub fn id(&self) -> &TableId {
+        &self.id.as_ref().expect("id is not set")
+    }
+
+    pub fn id_wrapped(&self) -> &Option<TableId> {
         &self.id
     }
 

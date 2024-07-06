@@ -33,7 +33,7 @@ where
 
 impl<'a, CR> IColumnDirectoryDeleteService for ColumnDirectoryDeleteService<'a, CR>
 where
-    CR: IColumnRepository,
+    CR: IColumnRepository + Sync,
 {
     async fn handle(
         &self,
@@ -123,8 +123,8 @@ mod tests {
             ColumnName::new("column_name_1".to_string())?,
             directory_id1.clone(),
             vec![
-                cell1.id().as_ref().unwrap().clone(),
-                cell2.id().as_ref().unwrap().clone(),
+                cell1.id().clone(),
+                cell2.id().clone(),
             ],
         );
 
@@ -134,8 +134,8 @@ mod tests {
             ColumnName::new("column_name_2".to_string())?,
             directory_id1.clone(),
             vec![
-                cell3.id().as_ref().unwrap().clone(),
-                cell4.id().as_ref().unwrap().clone(),
+                cell3.id().clone(),
+                cell4.id().clone(),
             ],
         );
 
@@ -145,9 +145,9 @@ mod tests {
             ColumnName::new("column_name_3".to_string())?,
             directory_id1.clone(),
             vec![
-                cell5.id().as_ref().unwrap().clone(),
-                cell6.id().as_ref().unwrap().clone(),
-                cell7.id().as_ref().unwrap().clone(),
+                cell5.id().clone(),
+                cell6.id().clone(),
+                cell7.id().clone(),
             ],
         );
 
@@ -167,7 +167,7 @@ mod tests {
         let service = ColumnDirectoryDeleteService::new(&column_repository);
 
         let command = ColumnDirectoryDeleteCommand {
-            id: directory1.id().as_ref().unwrap().clone_value(),
+            id: directory1.id().clone_value(),
         };
 
         let ColumnDirectoryDeleteOutputData {} = service.handle(command).await?;
@@ -180,15 +180,15 @@ mod tests {
 
         // カラムが削除されたことを確認
         assert!(column_repository
-            .find(column1.id().as_ref().unwrap(),)
+            .find(column1.id(),)
             .await?
             .is_none());
         assert!(column_repository
-            .find(column2.id().as_ref().unwrap(),)
+            .find(column2.id(),)
             .await?
             .is_none());
         assert!(column_repository
-            .find(column2.id().as_ref().unwrap(),)
+            .find(column2.id(),)
             .await?
             .is_none());
 

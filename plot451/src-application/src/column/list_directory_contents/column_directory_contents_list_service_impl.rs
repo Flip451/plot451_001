@@ -35,7 +35,7 @@ where
 
 impl<'a, CR> IColumnDirectoryContentsListService for ColumnDirectoryContentsListService<'a, CR>
 where
-    CR: IColumnRepository,
+    CR: IColumnRepository + Sync,
 {
     async fn handle(
         &self,

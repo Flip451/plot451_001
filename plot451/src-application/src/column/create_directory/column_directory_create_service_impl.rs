@@ -42,8 +42,8 @@ where
 
 impl<'a, 'b, CF, CR> IColumnDirectoryCreateService for ColumnDirectoryCreateService<'a, 'b, CF, CR>
 where
-    CF: IColumnFactory,
-    CR: IColumnRepository,
+    CF: IColumnFactory + Sync,
+    CR: IColumnRepository + Sync,
 {
     // TODO: トランザクション処理を追加する
     async fn handle(

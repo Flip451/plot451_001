@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use thiserror::Error;
+
 use super::column_cell::column_cell_id::ColumnCellId;
 use super::column_directory::column_directory_id::ColumnDirectoryId;
 use super::column_id::ColumnId;
@@ -32,7 +34,11 @@ impl Column {
     }
 
     // getter & setter
-    pub fn id(&self) -> &Option<ColumnId> {
+    pub fn id(&self) -> &ColumnId {
+        self.id.as_ref().expect("id is not set")
+    }
+
+    pub fn id_wrapped(&self) -> &Option<ColumnId> {
         &self.id
     }
 
@@ -107,7 +113,7 @@ impl PartialEq for Column {
     }
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Error)]
 pub enum ColumnEntityError {
     #[error("invalid order")]
     InvalidOrder,

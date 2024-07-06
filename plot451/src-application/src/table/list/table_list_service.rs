@@ -13,10 +13,10 @@ use super::{table_list_command::TableListCommand, table_list_output_data::TableL
 pub type TableListServiceResult<T> = anyhow::Result<T, TableListServiceError>;
 
 pub trait ITableListService {
-    async fn handle(
+    fn handle(
         &self,
         command: TableListCommand,
-    ) -> TableListServiceResult<TableListOutputData>;
+    ) -> impl std::future::Future<Output = TableListServiceResult<TableListOutputData>> + Send;
 }
 
 #[derive(Debug, Error)]

@@ -7,7 +7,7 @@ pub type TableFactoryResult<T> = anyhow::Result<T, TableFactoryError>;
 type Result<T> = TableFactoryResult<T>;
 
 pub trait ITableFactory {
-    async fn create_table(&self, name: TableName, columns: Vec<ColumnId>) -> Result<Table>;
+    fn create_table(&self, name: TableName, columns: Vec<ColumnId>) -> impl std::future::Future<Output = Result<Table>> + Send;
 }
 
 #[derive(Debug, Error)]

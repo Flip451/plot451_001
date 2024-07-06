@@ -14,10 +14,10 @@ use super::{
 pub type ColumnCreateServiceResult<T> = anyhow::Result<T, ColumnCreateServiceError>;
 
 pub trait IColumnCreateService {
-    async fn handle(
+    fn handle(
         &self,
         command: ColumnCreateCommand,
-    ) -> ColumnCreateServiceResult<ColumnCreateOutputData>;
+    ) -> impl std::future::Future<Output = ColumnCreateServiceResult<ColumnCreateOutputData>> + Send;
 }
 
 #[derive(Debug, Error)]

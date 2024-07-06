@@ -50,9 +50,9 @@ where
 
 impl<'a, 'b, 'c, TF, TR, CR> ITableCreateService for TableCreateService<'a, 'b, 'c, CR, TF, TR>
 where
-    CR: IColumnRepository,
-    TF: ITableFactory,
-    TR: ITableRepository,
+    CR: IColumnRepository + Sync,
+    TF: ITableFactory + Sync,
+    TR: ITableRepository + Sync,
 {
     // TODO: トランザクション処理を追加する
     async fn handle(
@@ -82,11 +82,11 @@ where
         for column in columns.iter() {
             let cells = self
                 .column_repository
-                .find_cells_by_column_id(column.id().as_ref().unwrap())
+                .find_cells_by_column_id(column.id())
                 .await
                 .map_err(|e| TableCreateServiceError::ColumnRepositoryError(e))?;
             let column_with_cells = ColumnWithCells::new(
-                column.id().as_ref().unwrap().clone(),
+                column.id().clone(),
                 column.name().clone(),
                 cells,
             );
@@ -101,7 +101,7 @@ where
             .map_err(|e| TableCreateServiceError::TableFactoryError(e))?;
 
         // ファーストクラスコレクションに詰め替え
-        let table_columns = TableColumns::new(columns.clone());
+        let table_columns = TableColumns::new(&table, columns.clone());
 
         // カラム名の重複チェック
         let no_duplicated_column_name_spec = NoDuplicatedColumnNamesSpecification::new();
@@ -119,11 +119,7 @@ where
         // テーブルの永続化が成功した場合、id をセットして OutputData を返す
         table.set_id(table_id);
 
-        let table_with_columns_and_cells = TableWithColumnsAndCells::new(
-            table.id().as_ref().unwrap().clone(),
-            table.name().clone(),
-            columns_with_cells,
-        );
+        let table_with_columns_and_cells = TableWithColumnsAndCells::new(&table, columns_with_cells);
         let output_data = TableCreateOutputData::new(table_with_columns_and_cells);
         Ok(output_data)
     }
@@ -181,8 +177,8 @@ mod tests {
             ColumnName::new("column_name_1".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![
-                cell_1.id().as_ref().unwrap().clone(),
-                cell_2.id().as_ref().unwrap().clone(),
+                cell_1.id().clone(),
+                cell_2.id().clone(),
             ],
         );
 
@@ -191,8 +187,8 @@ mod tests {
             ColumnName::new("column_name_2".to_string()).unwrap(),
             ColumnDirectoryId::new("0".to_string()).unwrap(),
             vec![
-                cell_3.id().as_ref().unwrap().clone(),
-                cell_4.id().as_ref().unwrap().clone(),
+                cell_3.id().clone(),
+                cell_4.id().clone(),
             ],
         );
 

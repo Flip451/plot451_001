@@ -26,7 +26,7 @@ impl ColumnCreateOutputData {
                 .cells()
                 .into_iter()
                 .map(|cell| ColumnCellInOutputData {
-                    cell_id: cell.id().as_ref().unwrap().clone_value(),
+                    cell_id: cell.id().clone_value(),
                     cell_value: cell.cell_value().clone_value(),
                 })
                 .collect(),

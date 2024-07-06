@@ -8,7 +8,7 @@ use super::{column_directory_delete_command::ColumnDirectoryDeleteCommand, colum
 pub type ColumnDirectoryDeleteServiceResult<T> = anyhow::Result<T, ColumnDirectoryDeleteServiceError>;
 
 pub trait IColumnDirectoryDeleteService {
-    async fn handle(&self, command: ColumnDirectoryDeleteCommand) -> ColumnDirectoryDeleteServiceResult<ColumnDirectoryDeleteOutputData>;
+    fn handle(&self, command: ColumnDirectoryDeleteCommand) -> impl std::future::Future<Output = ColumnDirectoryDeleteServiceResult<ColumnDirectoryDeleteOutputData>> + Send;
 }
 
 #[derive(Debug, Error)]

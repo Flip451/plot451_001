@@ -15,7 +15,7 @@ pub struct ColumnDirectoryCreateOutputData {
 impl ColumnDirectoryCreateOutputData {
     pub(super) fn new(source: ColumnDirectory) -> Self {
         Self {
-            directory_id: source.id().as_ref().unwrap().clone_value(),
+            directory_id: source.id().clone_value(),
             directory_name: source.name().clone_value(),
             parent_id: source.parent().as_ref().map(|id| id.clone_value()),
         }

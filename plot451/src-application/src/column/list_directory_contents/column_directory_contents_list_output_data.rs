@@ -29,7 +29,7 @@ impl ColumnDirectoryContentsListOutputData {
             .columns()
             .iter()
             .map(|column| ColumnInOutputData {
-                column_id: column.id().as_ref().unwrap().clone_value(),
+                column_id: column.id().clone_value(),
                 column_name: column.name().clone_value(),
             })
             .collect();
@@ -37,7 +37,7 @@ impl ColumnDirectoryContentsListOutputData {
             .directories()
             .iter()
             .map(|directory| DirectoryInOutputData {
-                directory_id: directory.id().as_ref().unwrap().clone_value(),
+                directory_id: directory.id().clone_value(),
                 directory_name: directory.name().clone_value(),
             })
             .collect();

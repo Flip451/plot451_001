@@ -1,13 +1,22 @@
 use crate::models::column::{column::Column, column_name::ColumnName};
 
+use super::table::Table;
+
 // ファーストクラスコレクション
 pub struct TableColumns {
     columns: Vec<Column>,
 }
 
 impl TableColumns {
-    pub fn new(columns: Vec<Column>) -> Self {
-        // TODO: assert 文を追加
+    pub fn new(table: &Table, columns: Vec<Column>) -> Self {
+        assert_eq!(
+            table
+                .columns()
+                .iter()
+                .map(|column_id| column_id)
+                .collect::<Vec<_>>(),
+            columns.iter().map(|column| column.id()).collect::<Vec<_>>()
+        );
         Self { columns }
     }
 

@@ -15,18 +15,18 @@ use super::{
 pub type ColumnFactoryResult<T> = anyhow::Result<T, ColumnFactoryError>;
 
 pub trait IColumnFactory {
-    async fn create_column(
+    fn create_column(
         &self,
         name: ColumnName,
         directory: ColumnDirectoryId,
         cells: Vec<ColumnCellId>,
-    ) -> ColumnFactoryResult<Column>;
-    async fn create_cell(&self, value: ColumnCellValue) -> ColumnFactoryResult<ColumnCell>;
-    async fn create_directory(
+    ) -> impl std::future::Future<Output = ColumnFactoryResult<Column>> + Send;
+    fn create_cell(&self, value: ColumnCellValue) -> impl std::future::Future<Output = ColumnFactoryResult<ColumnCell>> + Send;
+    fn create_directory(
         &self,
         name: ColumnDirectoryName,
         parent_id: Option<ColumnDirectoryId>,
-    ) -> ColumnFactoryResult<ColumnDirectory>;
+    ) -> impl std::future::Future<Output = ColumnFactoryResult<ColumnDirectory>> + Send;
 }
 
 #[derive(Debug, Error)]

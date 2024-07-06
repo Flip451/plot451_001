@@ -1,6 +1,6 @@
 use crate::models::column::column_with_cells::ColumnWithCells;
 
-use super::{table_id::TableId, table_name::TableName};
+use super::{table::Table, table_id::TableId, table_name::TableName};
 
 pub struct TableWithColumnsAndCells {
     id: TableId,
@@ -9,9 +9,21 @@ pub struct TableWithColumnsAndCells {
 }
 
 impl TableWithColumnsAndCells {
-    pub fn new(id: TableId, name: TableName, columns: Vec<ColumnWithCells>) -> Self {
-        // TODO: assert 文を追加
-        Self { id, name, columns }
+    pub fn new(table: &Table, columns: Vec<ColumnWithCells>) -> Self {
+        assert_eq!(
+            table
+                .columns()
+                .iter()
+                .map(|column_id| column_id)
+                .collect::<Vec<_>>(),
+            columns.iter().map(|column| column.id()).collect::<Vec<_>>()
+        );
+
+        Self {
+            id: table.id().clone(),
+            name: table.name().clone(),
+            columns,
+        }
     }
 
     pub fn id(&self) -> &TableId {

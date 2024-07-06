@@ -50,7 +50,7 @@ impl ITableRepository for InMemoryTableRepository {
     async fn save(&self, table: &Table) -> TableRepositoryResult<TableId> {
         let mut table = table.clone();
         let mut store = self.write_store_ref();
-        let id = match table.id() {
+        let id = match table.id_wrapped() {
             Some(id) => id.clone(),
             None => {
                 let id = Self::next_table_id(&mut store);
@@ -91,7 +91,7 @@ impl ITableRepository for InMemoryTableRepository {
 
     async fn delete(&self, table: Table) -> TableRepositoryResult<()> {
         let mut store = self.write_store_ref();
-        store.table_store.remove(table.id().as_ref().unwrap());
+        store.table_store.remove(table.id());
         Ok(())
     }
 }

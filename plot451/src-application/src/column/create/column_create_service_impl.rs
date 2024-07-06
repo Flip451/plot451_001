@@ -39,8 +39,8 @@ where
 
 impl<'a, 'b, CF, CR> IColumnCreateService for ColumnCreateService<'a, 'b, CF, CR>
 where
-    CF: IColumnFactory,
-    CR: IColumnRepository,
+    CF: IColumnFactory + Sync,
+    CR: IColumnRepository + Sync,
 {
     // TODO: トランザクション処理を追加する
     // TODO: セルの永続化処理を１コマンドで実行するように修正する
@@ -77,7 +77,7 @@ where
             cell.set_id(cell_id);
 
             // セルの永続化に成功した場合、リストに追加
-            cell_ids.push(cell.id().as_ref().unwrap().clone());
+            cell_ids.push(cell.id().clone());
             cells.push(cell);
         }
 
@@ -100,7 +100,7 @@ where
 
         // ファーストクラスコレクションに詰め替え
         let column_with_cells = column_with_cells::ColumnWithCells::new(
-            column.id().as_ref().unwrap().clone(),
+            column.id().clone(),
             column.name().clone(),
             cells,
         );

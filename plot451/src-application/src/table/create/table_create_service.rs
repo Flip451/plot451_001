@@ -16,10 +16,10 @@ use super::{
 pub type TableCreateServiceResult<T> = anyhow::Result<T, TableCreateServiceError>;
 
 pub trait ITableCreateService {
-    async fn handle(
+    fn handle(
         &self,
         command: TableCreateCommand,
-    ) -> TableCreateServiceResult<TableCreateOutputData>;
+    ) -> impl std::future::Future<Output = TableCreateServiceResult<TableCreateOutputData>> + Send;
 }
 
 #[derive(Debug, Error)]

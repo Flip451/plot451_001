@@ -17,7 +17,11 @@ impl ColumnDirectory {
     }
 
     // getter & setter
-    pub fn id(&self) -> &Option<ColumnDirectoryId> {
+    pub fn id(&self) -> &ColumnDirectoryId {
+        &self.id.as_ref().expect("id is not set")
+    }
+
+    pub fn id_wrapped(&self) -> &Option<ColumnDirectoryId> {
         &self.id
     }
 
