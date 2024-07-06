@@ -85,11 +85,7 @@ where
                 .find_cells_by_column_id(column.id())
                 .await
                 .map_err(|e| TableCreateServiceError::ColumnRepositoryError(e))?;
-            let column_with_cells = ColumnWithCells::new(
-                column.id().clone(),
-                column.name().clone(),
-                cells,
-            );
+            let column_with_cells = ColumnWithCells::new(column, cells);
             columns_with_cells.push(column_with_cells);
         }
 
@@ -119,7 +115,8 @@ where
         // テーブルの永続化が成功した場合、id をセットして OutputData を返す
         table.set_id(table_id);
 
-        let table_with_columns_and_cells = TableWithColumnsAndCells::new(&table, columns_with_cells);
+        let table_with_columns_and_cells =
+            TableWithColumnsAndCells::new(&table, columns_with_cells);
         let output_data = TableCreateOutputData::new(table_with_columns_and_cells);
         Ok(output_data)
     }
@@ -176,20 +173,14 @@ mod tests {
             Some(ColumnId::new("column_id_1".to_string())?),
             ColumnName::new("column_name_1".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
-            vec![
-                cell_1.id().clone(),
-                cell_2.id().clone(),
-            ],
+            vec![cell_1.id().clone(), cell_2.id().clone()],
         );
 
         let column_2 = Column::new(
             Some(ColumnId::new("column_id_2".to_string()).unwrap()),
             ColumnName::new("column_name_2".to_string()).unwrap(),
             ColumnDirectoryId::new("0".to_string()).unwrap(),
-            vec![
-                cell_3.id().clone(),
-                cell_4.id().clone(),
-            ],
+            vec![cell_3.id().clone(), cell_4.id().clone()],
         );
 
         column_repository.save(&column_1).await.unwrap();

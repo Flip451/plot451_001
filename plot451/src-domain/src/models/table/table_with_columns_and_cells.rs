@@ -1,3 +1,5 @@
+use std::{collections::HashSet, hash::RandomState};
+
 use crate::models::column::column_with_cells::ColumnWithCells;
 
 use super::{table::Table, table_id::TableId, table_name::TableName};
@@ -11,12 +13,8 @@ pub struct TableWithColumnsAndCells {
 impl TableWithColumnsAndCells {
     pub fn new(table: &Table, columns: Vec<ColumnWithCells>) -> Self {
         assert_eq!(
-            table
-                .columns()
-                .iter()
-                .map(|column_id| column_id)
-                .collect::<Vec<_>>(),
-            columns.iter().map(|column| column.id()).collect::<Vec<_>>()
+            HashSet::<_, RandomState>::from_iter(table.columns().iter()),
+            HashSet::from_iter(columns.iter().map(|column| column.id()))
         );
 
         Self {

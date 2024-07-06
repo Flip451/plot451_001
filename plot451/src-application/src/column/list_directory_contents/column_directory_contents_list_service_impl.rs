@@ -52,11 +52,15 @@ where
             .find_directory(&directory_id)
             .await
             .map_err(|e| ColumnDirectoryContentsListServiceError::ColumnRepositoryError(e))?;
-        if let None = directory {
-            return Err(
-                ColumnDirectoryContentsListServiceError::ColumnDirectoryNotFound(directory_id),
-            );
-        }
+
+        let directory = match directory {
+            Some(d) => d,
+            None => {
+                return Err(
+                    ColumnDirectoryContentsListServiceError::ColumnDirectoryNotFound(directory_id),
+                );
+            }
+        };
 
         // ディレクトリ内のカラムを取得
         let columns = self
@@ -72,7 +76,7 @@ where
             .map_err(|e| ColumnDirectoryContentsListServiceError::ColumnRepositoryError(e))?;
 
         // ファーストクラスコレクションにデータを詰め替え
-        let directory_columns = DirectoryContents::new(directory_id, columns, directories);
+        let directory_columns = DirectoryContents::new(&directory, columns, directories);
 
         // DTOにデータを詰め替え
         let output_data = ColumnDirectoryContentsListOutputData::new(directory_columns);

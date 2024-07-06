@@ -10,21 +10,21 @@ pub struct DirectoryContents {
 
 impl DirectoryContents {
     pub fn new(
-        directory: &ColumnDirectory,
+        parent_directory: &ColumnDirectory,
         columns: Vec<Column>,
-        directories: Vec<ColumnDirectory>,
+        child_directories: Vec<ColumnDirectory>,
     ) -> Self {
         columns.iter().for_each(|column| {
-            assert_eq!(column.directory_id(), directory.id());
+            assert_eq!(column.directory_id(), parent_directory.id());
         });
-        directories.iter().for_each(|directory| {
-            assert_eq!(directory.parent().as_ref().unwrap(), directory.id());
+        child_directories.iter().for_each(|directory| {
+            assert_eq!(directory.parent().as_ref().unwrap(), parent_directory.id());
         });
 
         Self {
-            directory_id: directory.id().clone(),
+            directory_id: parent_directory.id().clone(),
             columns,
-            directories,
+            directories: child_directories,
         }
     }
 

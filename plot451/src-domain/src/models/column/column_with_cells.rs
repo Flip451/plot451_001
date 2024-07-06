@@ -1,3 +1,5 @@
+use std::{collections::HashSet, hash::RandomState};
+
 use super::{
     column::Column, column_cell::column_cell::ColumnCell, column_id::ColumnId,
     column_name::ColumnName,
@@ -12,12 +14,8 @@ pub struct ColumnWithCells {
 impl ColumnWithCells {
     pub fn new(column: &Column, cells: Vec<ColumnCell>) -> Self {
         assert_eq!(
-            column
-                .cells()
-                .iter()
-                .map(|cell_id| cell_id)
-                .collect::<Vec<_>>(),
-            cells.iter().map(|cell| cell.id()).collect::<Vec<_>>()
+            HashSet::<_, RandomState>::from_iter(column.cells().iter()),
+            HashSet::from_iter(cells.iter().map(|cell| cell.id()))
         );
 
         Self {

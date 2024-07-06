@@ -99,11 +99,7 @@ where
         column.set_id(column_id);
 
         // ファーストクラスコレクションに詰め替え
-        let column_with_cells = column_with_cells::ColumnWithCells::new(
-            column.id().clone(),
-            column.name().clone(),
-            cells,
-        );
+        let column_with_cells = column_with_cells::ColumnWithCells::new(&column, cells);
 
         let output_data = ColumnCreateOutputData::new(column_with_cells);
         Ok(output_data)

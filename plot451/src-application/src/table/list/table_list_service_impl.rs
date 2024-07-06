@@ -59,15 +59,13 @@ where
 
             let mut list_of_column_with_cells: Vec<ColumnWithCells> = vec![];
             for column in columns.iter() {
-                let column_id = column.id().clone();
-                let column_name = column.name().clone();
                 let cell_ids = column.cells();
                 let cells = self
                     .column_repository
                     .find_cells_by_ids(&cell_ids)
                     .await
                     .map_err(|e| TableListServiceError::ColumnRepositoryError(e))?;
-                let column_with_cells = ColumnWithCells::new(column_id, column_name, cells);
+                let column_with_cells = ColumnWithCells::new(column, cells);
                 list_of_column_with_cells.push(column_with_cells);
             }
             let table_with_columns_and_cells =
