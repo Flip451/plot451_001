@@ -1,18 +1,29 @@
-use super::{column_cell::column_cell::ColumnCell, column_id::ColumnId, column_name::ColumnName};
+use super::{
+    column::Column, column_cell::column_cell::ColumnCell, column_id::ColumnId,
+    column_name::ColumnName,
+};
 
 pub struct ColumnWithCells {
     column_id: ColumnId,
     column_name: ColumnName,
-    cells: Vec<ColumnCell>
+    cells: Vec<ColumnCell>,
 }
 
 impl ColumnWithCells {
-    pub fn new(column_id: ColumnId, column_name: ColumnName, cells: Vec<ColumnCell>) -> Self {
-        // TODO: assert 文を追加
+    pub fn new(column: &Column, cells: Vec<ColumnCell>) -> Self {
+        assert_eq!(
+            column
+                .cells()
+                .iter()
+                .map(|cell_id| cell_id)
+                .collect::<Vec<_>>(),
+            cells.iter().map(|cell| cell.id()).collect::<Vec<_>>()
+        );
+
         Self {
-            column_id,
-            column_name,
-            cells
+            column_id: column.id().clone(),
+            column_name: column.name().clone(),
+            cells,
         }
     }
 

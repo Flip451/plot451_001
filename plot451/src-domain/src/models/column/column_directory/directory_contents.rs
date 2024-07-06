@@ -10,13 +10,19 @@ pub struct DirectoryContents {
 
 impl DirectoryContents {
     pub fn new(
-        directory_id: ColumnDirectoryId,
+        directory: &ColumnDirectory,
         columns: Vec<Column>,
         directories: Vec<ColumnDirectory>,
     ) -> Self {
-        // TODO: assert 文を追加
+        columns.iter().for_each(|column| {
+            assert_eq!(column.directory_id(), directory.id());
+        });
+        directories.iter().for_each(|directory| {
+            assert_eq!(directory.parent().as_ref().unwrap(), directory.id());
+        });
+
         Self {
-            directory_id,
+            directory_id: directory.id().clone(),
             columns,
             directories,
         }
