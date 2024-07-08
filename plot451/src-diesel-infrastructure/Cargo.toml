@@ -1,0 +1,12 @@
+[package]
+name = "src-diesel-infrastructure"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+diesel = { version = "2.2.1", features = ["returning_clauses_for_sqlite_3_35", "sqlite", "r2d2"] }
+dotenvy = "0.15.7"
+src-domain = { path = "../src-domain" }
+
+[dev-dependencies]
+tokio = { version = "1.38.0", features = ["full"] }
