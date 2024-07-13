@@ -25,7 +25,7 @@ impl DieselTableRepository {
     ) -> TableRepositoryResult<PooledConnection<ConnectionManager<SqliteConnection>>> {
         self.pool
             .get()
-            .map_err(|e| TableRepositoryError::Unexpected(e.to_string()))
+            .map_err(|e| TableRepositoryError::Unexpected(Box::new(e)))
     }
 }
 

@@ -37,5 +37,5 @@ pub enum ColumnRepositoryError {
     #[error("Column not found")]
     ColumnNotFound(ColumnId),
     #[error("Unexpected error: [{0}]")]
-    Unexpected(Box<dyn std::error::Error>),
+    Unexpected(Box<dyn std::error::Error + Send + Sync>),
 }
