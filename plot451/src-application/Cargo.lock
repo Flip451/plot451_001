@@ -278,7 +278,6 @@ dependencies = [
 name = "src-in-memory-infrastructure"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "src-domain",
 ]
 

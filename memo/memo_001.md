@@ -39,3 +39,10 @@
    ```bash
    cargo new src-sqlx-infrastructure --vcs none --lib
    ```
+
+9. マイグレーションの作成
+
+      ```bash
+      cargo install sqlx-cli
+      sqlx migrate add init
+      ```
