@@ -4,10 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.86"
-
-[dependencies.src-domain]
-path = "../src-domain"
+src-domain = { version = "0.1.0", path = "../src-domain" }
 
 [dev-dependencies]
+anyhow = "1.0.86"
 tokio = { version = "1.38.0", features = ["full"] }
