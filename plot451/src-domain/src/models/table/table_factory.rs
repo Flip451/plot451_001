@@ -15,5 +15,5 @@ pub enum TableFactoryError {
     #[error("Table entity error: [{0}]")]
     TableEntityError(TableEntityError),
     #[error("Unexpected error: [{0}]")]
-    Unexpected(String),
+    Unexpected(Box<dyn std::error::Error>),
 }

@@ -22,5 +22,5 @@ pub enum TableRepositoryError {
     #[error("Table not found, table id is {0}")]
     TableNotFound(TableId),
     #[error("Unexpected error: [{0}]")]
-    Unexpected(String),
+    Unexpected(Box<dyn std::error::Error>),
 }

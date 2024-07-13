@@ -32,5 +32,5 @@ pub trait IColumnFactory {
 #[derive(Debug, Error)]
 pub enum ColumnFactoryError {
     #[error("Unexpected error: [{0}]")]
-    Unexpected(String),
+    Unexpected(Box<dyn std::error::Error>),
 }
