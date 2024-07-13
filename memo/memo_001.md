@@ -33,3 +33,9 @@
    ```bash
    cargo new src-diesel-infrastructure --vcs none --lib
    ```
+
+8. sqlx リポジトリ管理用のクレートの作成
+
+   ```bash
+   cargo new src-sqlx-infrastructure --vcs none --lib
+   ```
