@@ -1,8 +1,8 @@
-use crate::models::column::column_id::ColumnId;
+use crate::models::column::column_id::{ColumnId, ColumnIdError};
 
 use super::{
     table::{Table, TableEntityError},
-    table_id::{TableId, TableIdError},
+    table_id::{TableId, TableIdError}, table_name::TableNameError,
 };
 use thiserror::Error;
 
@@ -30,6 +30,10 @@ pub enum TableRepositoryError {
     // value object error
     #[error("TableId error: [{0}]")]
     TableIdError(TableIdError),
+    #[error("TableName error: [{0}]")]
+    TableNameError(TableNameError),
+    #[error("ColumnId error: [{0}]")]
+    ColumnIdError(ColumnIdError),
 
     #[error("Table not found, table id is {0}")]
     TableNotFound(TableId),

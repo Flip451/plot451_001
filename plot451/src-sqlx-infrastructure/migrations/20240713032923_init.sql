@@ -33,10 +33,9 @@ CREATE TABLE tables (
 CREATE TABLE table_columns (
     table_id INTEGER NOT NULL,
     column_id INTEGER NOT NULL,
-    CONSTRAINT table_id
-        FOREIGN KEY (table_id) REFERENCES tables(id)
-        ON DELETE CASCADE,
-    CONSTRAINT column_id
-        FOREIGN KEY (column_id) REFERENCES columns(id)
-        ON DELETE CASCADE
+    sort_order INTEGER NOT NULL,
+    PRIMARY KEY (table_id, column_id),
+    UNIQUE (table_id, sort_order),
+    FOREIGN KEY (table_id) REFERENCES tables(id),
+    FOREIGN KEY (column_id) REFERENCES columns(id)
 );
