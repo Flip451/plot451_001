@@ -109,8 +109,8 @@ mod tests {
         let repository = InMemoryTableRepository::new();
 
         // 保存用のテーブルインスタンスを作成
-        let table = Table::new(
-            Some(TableId::new("1".to_string())?),
+        let table = Table::reconstruct(
+            TableId::new("1".to_string())?,
             TableName::new("test_table".to_string())?,
             vec![
                 ColumnId::new("1".to_string())?,
@@ -134,7 +134,6 @@ mod tests {
 
         // 保存用のテーブルインスタンスを作成
         let mut table = Table::new(
-            None,
             TableName::new("test_table".to_string())?,
             vec![
                 ColumnId::new("1".to_string())?,
@@ -159,8 +158,8 @@ mod tests {
 
         // ストア内に保存するデータの作成
         let table_id = TableId::new("1".to_string())?;
-        let table = Table::new(
-            Some(table_id.clone()),
+        let table = Table::reconstruct(
+            table_id.clone(),
             TableName::new("test_table".to_string())?,
             vec![
                 ColumnId::new("1".to_string())?,
@@ -194,15 +193,15 @@ mod tests {
         let column_id3 = ColumnId::new("3".to_string())?;
 
         let table_id1 = TableId::new("1".to_string())?;
-        let table1 = Table::new(
-            Some(table_id1.clone()),
+        let table1 = Table::reconstruct(
+            table_id1.clone(),
             TableName::new("test_table1".to_string())?,
             vec![column_id1.clone(), column_id2.clone()],
         )?;
 
         let table_id2 = TableId::new("2".to_string())?;
-        let table2 = Table::new(
-            Some(table_id2.clone()),
+        let table2 = Table::reconstruct(
+            table_id2.clone(),
             TableName::new("test_table2".to_string())?,
             vec![column_id2.clone(), column_id3.clone()],
         )?;
@@ -247,8 +246,8 @@ mod tests {
 
         // ストア内に保存するデータの作成
         let table_id1 = TableId::new("1".to_string())?;
-        let table1 = Table::new(
-            Some(table_id1.clone()),
+        let table1 = Table::reconstruct(
+            table_id1.clone(),
             TableName::new("test_table1".to_string())?,
             vec![
                 ColumnId::new("1".to_string())?,
@@ -257,8 +256,8 @@ mod tests {
         )?;
 
         let table_id2 = TableId::new("2".to_string())?;
-        let table2 = Table::new(
-            Some(table_id2.clone()),
+        let table2 = Table::reconstruct(
+            table_id2.clone(),
             TableName::new("test_table2".to_string())?,
             vec![
                 ColumnId::new("3".to_string())?,
@@ -289,8 +288,8 @@ mod tests {
 
         // ストア内に保存するデータの作成
         let table_id = TableId::new("1".to_string())?;
-        let table = Table::new(
-            Some(table_id.clone()),
+        let table = Table::reconstruct(
+            table_id.clone(),
             TableName::new("test_table".to_string())?,
             vec![
                 ColumnId::new("1".to_string())?,

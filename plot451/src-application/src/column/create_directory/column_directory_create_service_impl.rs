@@ -1,9 +1,9 @@
 use src_domain::{
     models::column::{
         column_directory::{
-            column_directory_id::ColumnDirectoryId, column_directory_name::ColumnDirectoryName,
+            column_directory::ColumnDirectory, column_directory_id::ColumnDirectoryId,
+            column_directory_name::ColumnDirectoryName,
         },
-        column_factory::IColumnFactory,
         column_repository::IColumnRepository,
     },
     shared::value_object::ValueObject,
@@ -18,31 +18,24 @@ use super::{
     },
 };
 
-pub struct ColumnDirectoryCreateService<'a, 'b, CF, CR>
+pub struct ColumnDirectoryCreateService<'a, CR>
 where
-    CF: IColumnFactory,
     CR: IColumnRepository,
 {
-    column_factory: &'a CF,
-    column_repository: &'b CR,
+    column_repository: &'a CR,
 }
 
-impl<'a, 'b, CF, CR> ColumnDirectoryCreateService<'a, 'b, CF, CR>
+impl<'a, CR> ColumnDirectoryCreateService<'a, CR>
 where
-    CF: IColumnFactory,
     CR: IColumnRepository,
 {
-    pub fn new(column_factory: &'a CF, column_repository: &'b CR) -> Self {
-        Self {
-            column_factory,
-            column_repository,
-        }
+    pub fn new(column_repository: &'a CR) -> Self {
+        Self { column_repository }
     }
 }
 
-impl<'a, 'b, CF, CR> IColumnDirectoryCreateService for ColumnDirectoryCreateService<'a, 'b, CF, CR>
+impl<'a, CR> IColumnDirectoryCreateService for ColumnDirectoryCreateService<'a, CR>
 where
-    CF: IColumnFactory + Sync,
     CR: IColumnRepository + Sync,
 {
     // TODO: トランザクション処理を追加する
@@ -76,11 +69,7 @@ where
         };
 
         // エンティティのインスタンス化
-        let mut directory = self
-            .column_factory
-            .create_directory(name, parent_id)
-            .await
-            .map_err(|e| ColumnDirectoryCreateServiceError::ColumnDirectoryFactoryError(e))?;
+        let mut directory = ColumnDirectory::new(name, parent_id);
 
         // エンティティの永続化
         let directory_id = self
@@ -98,20 +87,16 @@ where
 
 #[cfg(test)]
 mod tests {
-    use src_in_memory_infrastructure::column::{
-        in_memory_column_factory::InMemoryColumnFactory,
-        in_memory_column_repository::InMemoryColumnRepository,
-    };
+    use src_in_memory_infrastructure::column::in_memory_column_repository::InMemoryColumnRepository;
 
     use super::*;
 
     #[tokio::test]
     async fn test_handle() -> anyhow::Result<()> {
-        let column_factory = InMemoryColumnFactory::new();
         let column_repository = InMemoryColumnRepository::new();
 
         // サービスのインスタンス化
-        let service = ColumnDirectoryCreateService::new(&column_factory, &column_repository);
+        let service = ColumnDirectoryCreateService::new(&column_repository);
 
         let command = ColumnDirectoryCreateCommand {
             name: "directory_name1".to_string(),

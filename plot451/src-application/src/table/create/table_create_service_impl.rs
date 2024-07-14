@@ -6,7 +6,7 @@ use src_domain::{
         },
         table::{
             no_duplicated_column_names_specification::NoDuplicatedColumnNamesSpecification,
-            table_columns::TableColumns, table_factory::ITableFactory, table_name::TableName,
+            table::Table, table_columns::TableColumns, table_name::TableName,
             table_repository::ITableRepository,
             table_with_columns_and_cells::TableWithColumnsAndCells,
         },
@@ -22,36 +22,31 @@ use super::{
     },
 };
 
-pub struct TableCreateService<'a, 'b, 'c, CR, TF, TR>
+pub struct TableCreateService<'a, 'b, CR, TR>
 where
     CR: IColumnRepository,
-    TF: ITableFactory,
     TR: ITableRepository,
 {
     column_repository: &'a CR,
-    table_factory: &'b TF,
-    table_repository: &'c TR,
+    table_repository: &'b TR,
 }
 
-impl<'a, 'b, 'c, CR, TF, TR> TableCreateService<'a, 'b, 'c, CR, TF, TR>
+impl<'a, 'b, CR, TR> TableCreateService<'a, 'b, CR, TR>
 where
     CR: IColumnRepository,
-    TF: ITableFactory,
     TR: ITableRepository,
 {
-    pub fn new(column_repository: &'a CR, table_factory: &'b TF, table_repository: &'c TR) -> Self {
+    pub fn new(column_repository: &'a CR, table_repository: &'b TR) -> Self {
         TableCreateService {
             column_repository,
-            table_factory,
             table_repository,
         }
     }
 }
 
-impl<'a, 'b, 'c, TF, TR, CR> ITableCreateService for TableCreateService<'a, 'b, 'c, CR, TF, TR>
+impl<'a, 'b, TR, CR> ITableCreateService for TableCreateService<'a, 'b, CR, TR>
 where
     CR: IColumnRepository + Sync,
-    TF: ITableFactory + Sync,
     TR: ITableRepository + Sync,
 {
     // TODO: トランザクション処理を追加する
@@ -90,11 +85,8 @@ where
         }
 
         // エンティティのインスタンス化
-        let mut table = self
-            .table_factory
-            .create_table(table_name, column_ids)
-            .await
-            .map_err(|e| TableCreateServiceError::TableFactoryError(e))?;
+        let mut table = Table::new(table_name, column_ids)
+            .map_err(|e| TableCreateServiceError::TableEntityError(e))?;
 
         // ファーストクラスコレクションに詰め替え
         let table_columns = TableColumns::new(&table, columns.clone());
@@ -139,10 +131,7 @@ mod tests {
     };
     use src_in_memory_infrastructure::{
         column::in_memory_column_repository::InMemoryColumnRepository,
-        table::{
-            in_memory_table_factory::InMemoryTableFactory,
-            in_memory_table_repository::InMemoryTableRepository,
-        },
+        table::in_memory_table_repository::InMemoryTableRepository,
     };
 
     use super::*;
@@ -151,17 +140,16 @@ mod tests {
     async fn test_handle() -> anyhow::Result<()> {
         let column_repository = InMemoryColumnRepository::new();
         let table_repository = InMemoryTableRepository::new();
-        let table_factory = InMemoryTableFactory::new();
 
         // 事前にセルを4つ作成
         let cell_id1 = ColumnCellId::new("cell_id_1".to_string())?;
-        let cell_1 = ColumnCell::new(Some(cell_id1), ColumnCellValue::new(Some(1.0))?);
+        let cell_1 = ColumnCell::reconstruct(cell_id1, ColumnCellValue::new(Some(1.0))?);
         let cell_id2 = ColumnCellId::new("cell_id_2".to_string())?;
-        let cell_2 = ColumnCell::new(Some(cell_id2), ColumnCellValue::new(Some(2.0))?);
+        let cell_2 = ColumnCell::reconstruct(cell_id2, ColumnCellValue::new(Some(2.0))?);
         let cell_id3 = ColumnCellId::new("cell_id_3".to_string())?;
-        let cell_3 = ColumnCell::new(Some(cell_id3), ColumnCellValue::new(Some(3.0))?);
+        let cell_3 = ColumnCell::reconstruct(cell_id3, ColumnCellValue::new(Some(3.0))?);
         let cell_id4 = ColumnCellId::new("cell_id_4".to_string())?;
-        let cell_4 = ColumnCell::new(Some(cell_id4), ColumnCellValue::new(Some(4.0))?);
+        let cell_4 = ColumnCell::reconstruct(cell_id4, ColumnCellValue::new(Some(4.0))?);
 
         column_repository.save_cell(&cell_1).await?;
         column_repository.save_cell(&cell_2).await?;
@@ -169,15 +157,15 @@ mod tests {
         column_repository.save_cell(&cell_4).await?;
 
         // 事前にカラムを2つ作成
-        let column_1 = Column::new(
-            Some(ColumnId::new("column_id_1".to_string())?),
+        let column_1 = Column::reconstruct(
+            ColumnId::new("column_id_1".to_string())?,
             ColumnName::new("column_name_1".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![cell_1.id().clone(), cell_2.id().clone()],
         );
 
-        let column_2 = Column::new(
-            Some(ColumnId::new("column_id_2".to_string()).unwrap()),
+        let column_2 = Column::reconstruct(
+            ColumnId::new("column_id_2".to_string()).unwrap(),
             ColumnName::new("column_name_2".to_string()).unwrap(),
             ColumnDirectoryId::new("0".to_string()).unwrap(),
             vec![cell_3.id().clone(), cell_4.id().clone()],
@@ -187,8 +175,7 @@ mod tests {
         column_repository.save(&column_2).await.unwrap();
 
         // サービスのインスタンス化
-        let service =
-            TableCreateService::new(&column_repository, &table_factory, &table_repository);
+        let service = TableCreateService::new(&column_repository, &table_repository);
 
         // コマンドの作成
         let command = TableCreateCommand {
@@ -230,18 +217,17 @@ mod tests {
     async fn test_handle_with_duplicated_column_name() {
         let column_repository = InMemoryColumnRepository::new();
         let table_repository = InMemoryTableRepository::new();
-        let table_factory = InMemoryTableFactory::new();
 
         // 事前にカラムを2つ作成
-        let column_1 = Column::new(
-            Some(ColumnId::new("column_id_1".to_string()).unwrap()),
+        let column_1 = Column::reconstruct(
+            ColumnId::new("column_id_1".to_string()).unwrap(),
             ColumnName::new("column_name_1".to_string()).unwrap(),
             ColumnDirectoryId::new("0".to_string()).unwrap(),
             vec![],
         );
 
-        let column_2 = Column::new(
-            Some(ColumnId::new("column_id_2".to_string()).unwrap()),
+        let column_2 = Column::reconstruct(
+            ColumnId::new("column_id_2".to_string()).unwrap(),
             ColumnName::new("column_name_1".to_string()).unwrap(),
             ColumnDirectoryId::new("0".to_string()).unwrap(),
             vec![],
@@ -251,8 +237,7 @@ mod tests {
         column_repository.save(&column_2).await.unwrap();
 
         // サービスのインスタンス化
-        let service =
-            TableCreateService::new(&column_repository, &table_factory, &table_repository);
+        let service = TableCreateService::new(&column_repository, &table_repository);
 
         // コマンドの作成
         let command = TableCreateCommand {

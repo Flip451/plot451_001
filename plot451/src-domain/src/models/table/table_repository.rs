@@ -1,7 +1,7 @@
 use crate::models::column::column_id::ColumnId;
 
 use super::{
-    table::Table,
+    table::{Table, TableEntityError},
     table_id::{TableId, TableIdError},
 };
 use thiserror::Error;
@@ -23,6 +23,10 @@ pub trait ITableRepository {
 
 #[derive(Debug, Error)]
 pub enum TableRepositoryError {
+    // entity error
+    #[error("Table entity error: [{0}]")]
+    TableEntityError(TableEntityError),
+
     // value object error
     #[error("TableId error: [{0}]")]
     TableIdError(TableIdError),

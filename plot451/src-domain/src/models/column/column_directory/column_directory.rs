@@ -12,8 +12,24 @@ pub struct ColumnDirectory {
 }
 
 impl ColumnDirectory {
-    pub fn new(id: Option<ColumnDirectoryId>, name: ColumnDirectoryName, parent: Option<ColumnDirectoryId>) -> Self {
-        Self { id, name, parent }
+    pub fn new(name: ColumnDirectoryName, parent: Option<ColumnDirectoryId>) -> Self {
+        Self {
+            id: None,
+            name,
+            parent,
+        }
+    }
+
+    pub fn reconstruct(
+        id: ColumnDirectoryId,
+        name: ColumnDirectoryName,
+        parent: Option<ColumnDirectoryId>,
+    ) -> Self {
+        Self {
+            id: Some(id),
+            name,
+            parent,
+        }
     }
 
     // getter & setter

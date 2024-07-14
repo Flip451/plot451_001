@@ -13,19 +13,31 @@ pub struct Table {
 }
 
 impl Table {
-    // Table の新規作製は factory で行う
+    pub fn new(name: TableName, columns: Vec<ColumnId>) -> Result<Self, TableEntityError> {
+        if columns.is_empty() {
+            return Err(TableEntityError::EmptyColumnList);
+        }
+        Ok(Self {
+            id: None,
+            name,
+            columns,
+        })
+    }
 
     // Table の再構築
-    // TODO: id を Option ではなく必須にする
-    pub fn new(
-        id: Option<TableId>,
+    pub fn reconstruct(
+        id: TableId,
         name: TableName,
         columns: Vec<ColumnId>,
     ) -> Result<Self, TableEntityError> {
         if columns.is_empty() {
             return Err(TableEntityError::EmptyColumnList);
         }
-        Ok(Self { id, name, columns })
+        Ok(Self {
+            id: Some(id),
+            name,
+            columns,
+        })
     }
 
     // getter & setter
@@ -219,8 +231,8 @@ mod tests {
         let column4 = ColumnId::new("column4".to_string())?;
         let column5 = ColumnId::new("column5".to_string())?;
 
-        let mut table = Table::new(
-            Some(table_id),
+        let mut table = Table::reconstruct(
+            table_id,
             table_name,
             vec![
                 column1.clone(),
@@ -296,8 +308,8 @@ mod tests {
         let column4 = ColumnId::new("column4".to_string())?;
         let column5 = ColumnId::new("column5".to_string())?;
 
-        let mut table = Table::new(
-            Some(table_id),
+        let mut table = Table::reconstruct(
+            table_id,
             table_name,
             vec![
                 column1.clone(),
@@ -329,8 +341,8 @@ mod tests {
         let column4 = ColumnId::new("column4".to_string())?;
         let column5 = ColumnId::new("column5".to_string())?;
 
-        let mut table = Table::new(
-            Some(table_id),
+        let mut table = Table::reconstruct(
+            table_id,
             table_name,
             vec![
                 column1.clone(),
@@ -363,8 +375,8 @@ mod tests {
         let column5 = ColumnId::new("column_id5".to_string())?;
 
         // 1, 2, 3, 4, 5
-        let mut table = Table::new(
-            Some(table_id),
+        let mut table = Table::reconstruct(
+            table_id,
             table_name,
             vec![
                 column1.clone(),
@@ -449,8 +461,8 @@ mod tests {
         let column5 = ColumnId::new("column_id5".to_string())?;
 
         // 1, 2, 3, 4, 5
-        let mut table = Table::new(
-            Some(table_id),
+        let mut table = Table::reconstruct(
+            table_id,
             table_name,
             vec![
                 column1.clone(),
@@ -482,8 +494,8 @@ mod tests {
         let column5 = ColumnId::new("column_id5".to_string()).unwrap();
 
         // 1, 2, 3, 4, 5
-        let mut table = Table::new(
-            Some(table_id),
+        let mut table = Table::reconstruct(
+            table_id,
             table_name,
             vec![
                 column1.clone(),

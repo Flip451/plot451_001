@@ -122,45 +122,45 @@ mod tests {
          */
         // 事前にデータを登録
         let directory_id1 = ColumnDirectoryId::new("1".to_string())?;
-        let directory1 = ColumnDirectory::new(
-            Some(directory_id1.clone()),
+        let directory1 = ColumnDirectory::reconstruct(
+            directory_id1.clone(),
             ColumnDirectoryName::new("directory1".to_string())?,
             None,
         );
 
         let directory_id2 = ColumnDirectoryId::new("2".to_string())?;
-        let directory2 = ColumnDirectory::new(
-            Some(directory_id2),
+        let directory2 = ColumnDirectory::reconstruct(
+            directory_id2,
             ColumnDirectoryName::new("directory2".to_string())?,
             Some(directory_id1.clone()),
         );
 
         let directory_id3 = ColumnDirectoryId::new("3".to_string())?;
-        let directory3 = ColumnDirectory::new(
-            Some(directory_id3),
+        let directory3 = ColumnDirectory::reconstruct(
+            directory_id3,
             ColumnDirectoryName::new("directory3".to_string())?,
             Some(directory_id1.clone()),
         );
 
         let column_id1 = ColumnId::new("1".to_string())?;
-        let column1 = Column::new(
-            Some(column_id1.clone()),
+        let column1 = Column::reconstruct(
+            column_id1.clone(),
             ColumnName::new("column1".to_string())?,
             directory_id1.clone(),
             vec![],
         );
 
         let column_id2 = ColumnId::new("2".to_string())?;
-        let column2 = Column::new(
-            Some(column_id2.clone()),
+        let column2 = Column::reconstruct(
+            column_id2.clone(),
             ColumnName::new("column2".to_string())?,
             directory_id1.clone(),
             vec![],
         );
 
         let column_id3 = ColumnId::new("3".to_string())?;
-        let column3 = Column::new(
-            Some(column_id3.clone()),
+        let column3 = Column::reconstruct(
+            column_id3.clone(),
             ColumnName::new("column3".to_string())?,
             directory_id1.clone(),
             vec![],

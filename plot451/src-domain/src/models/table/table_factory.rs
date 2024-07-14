@@ -1,14 +1,9 @@
-use crate::models::column::column_id::ColumnId;
-
-use super::{table::{Table, TableEntityError}, table_name::TableName};
+use super::table::TableEntityError;
 use thiserror::Error;
 
 pub type TableFactoryResult<T> = anyhow::Result<T, TableFactoryError>;
-type Result<T> = TableFactoryResult<T>;
 
-pub trait ITableFactory {
-    fn create_table(&self, name: TableName, columns: Vec<ColumnId>) -> impl std::future::Future<Output = Result<Table>> + Send;
-}
+pub trait ITableFactory {}
 
 #[derive(Debug, Error)]
 pub enum TableFactoryError {

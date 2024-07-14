@@ -1,8 +1,11 @@
 use src_domain::{
     models::column::{
-        column_cell::column_cell_value::ColumnCellValue,
-        column_directory::column_directory_id::ColumnDirectoryId, column_factory::IColumnFactory,
-        column_name::ColumnName, column_repository::IColumnRepository, column_with_cells,
+        column::Column,
+        column_cell::{column_cell::ColumnCell, column_cell_value::ColumnCellValue},
+        column_directory::column_directory_id::ColumnDirectoryId,
+        column_name::ColumnName,
+        column_repository::IColumnRepository,
+        column_with_cells,
     },
     shared::value_object::ValueObject,
 };
@@ -15,31 +18,24 @@ use super::{
     },
 };
 
-pub struct ColumnCreateService<'a, 'b, CF, CR>
+pub struct ColumnCreateService<'a, CR>
 where
-    CF: IColumnFactory,
     CR: IColumnRepository,
 {
-    column_factory: &'a CF,
-    column_repository: &'b CR,
+    column_repository: &'a CR,
 }
 
-impl<'a, 'b, CF, CR> ColumnCreateService<'a, 'b, CF, CR>
+impl<'a, CR> ColumnCreateService<'a, CR>
 where
-    CF: IColumnFactory,
     CR: IColumnRepository,
 {
-    pub fn new(column_factory: &'a CF, column_repository: &'b CR) -> Self {
-        ColumnCreateService {
-            column_factory,
-            column_repository,
-        }
+    pub fn new(column_repository: &'a CR) -> Self {
+        ColumnCreateService { column_repository }
     }
 }
 
-impl<'a, 'b, CF, CR> IColumnCreateService for ColumnCreateService<'a, 'b, CF, CR>
+impl<'a, CR> IColumnCreateService for ColumnCreateService<'a, CR>
 where
-    CF: IColumnFactory + Sync,
     CR: IColumnRepository + Sync,
 {
     // TODO: トランザクション処理を追加する
@@ -62,11 +58,7 @@ where
             // 値オブジェクトのインスタンス化
             let cell_value = ColumnCellValue::new(cell)
                 .map_err(|e| ColumnCreateServiceError::ColumnCellValueError(e))?;
-            let mut cell = self
-                .column_factory
-                .create_cell(cell_value)
-                .await
-                .map_err(|e| ColumnCreateServiceError::ColumnFactoryError(e))?;
+            let mut cell = ColumnCell::new(cell_value);
 
             // セルの永続化
             let cell_id = self
@@ -82,11 +74,7 @@ where
         }
 
         // カラムのインスタンス化
-        let mut column = self
-            .column_factory
-            .create_column(column_name, directory_id, cell_ids)
-            .await
-            .map_err(|e| ColumnCreateServiceError::ColumnFactoryError(e))?;
+        let mut column = Column::new(column_name, directory_id, cell_ids);
 
         // カラムの永続化
         let column_id = self
@@ -109,20 +97,16 @@ where
 #[cfg(test)]
 mod tests {
     use src_domain::models::column::column_id::ColumnId;
-    use src_in_memory_infrastructure::column::{
-        in_memory_column_factory::InMemoryColumnFactory,
-        in_memory_column_repository::InMemoryColumnRepository,
-    };
+    use src_in_memory_infrastructure::column::in_memory_column_repository::InMemoryColumnRepository;
 
     use super::*;
 
     #[tokio::test]
     async fn test_handle() {
-        let column_factory = InMemoryColumnFactory::new();
         let column_repository = InMemoryColumnRepository::new();
 
         // サービスのインスタンス化
-        let service = ColumnCreateService::new(&column_factory, &column_repository);
+        let service = ColumnCreateService::new(&column_repository);
 
         // コマンドの作成
         let command = ColumnCreateCommand {
