@@ -89,36 +89,25 @@ impl<'a> InternalTableRepository<'a> {
         InternalTableRepository { conn }
     }
 
-    // TODO: save_table と save_table_columns を一体化する
     pub(super) async fn save_table(&mut self, table: &Table) -> TableRepositoryResult<TableId> {
         let table_id = match table.id_wrapped() {
-            Some(_) => {
-                let sql = r#"
-UPDATE tables SET name = $2 WHERE id = $1
-RETURNING id
-"#;
-                let row = sqlx::query(sql)
-                    .bind(table.id().value())
+            // テーブル ID がある場合は UPDATE
+            Some(table_id) => {
+                let sql = "UPDATE tables SET name = $2 WHERE id = $1";
+
+                sqlx::query(sql)
+                    .bind(table_id.value())
                     .bind(table.name().value())
-                    .fetch_one(&mut *self.conn)
+                    .execute(&mut *self.conn)
                     .await
                     .map_err(|e| TableRepositoryError::Unexpected(Box::new(e)))?;
 
-                let table_id = TableId::new(
-                    row.try_get::<i64, &'static str>("id")
-                        .map_err(|e| TableRepositoryError::Unexpected(Box::new(e)))?
-                        .to_string(),
-                )
-                .map_err(|e| TableRepositoryError::TableIdError(e))?;
-
-                table_id
+                table_id.clone()
             }
+            // テーブル ID がない場合は INSERT
             None => {
-                let sql = r#"
-INSERT INTO tables (name)
-VALUES ($1)
-RETURNING id
-"#;
+                let sql = "INSERT INTO tables (name) VALUES ($1) RETURNING id";
+
                 let row = sqlx::query(sql)
                     .bind(table.name().value())
                     .fetch_one(&mut *self.conn)
@@ -136,25 +125,30 @@ RETURNING id
             }
         };
 
-        Ok(table_id)
-    }
+        let sql = "DELETE FROM table_columns WHERE table_id = $1";
 
-    pub(super) async fn save_table_columns(&mut self, table: &Table) -> TableRepositoryResult<()> {
+        sqlx::query(sql)
+            .bind(table_id.value())
+            .execute(&mut *self.conn)
+            .await
+            .map_err(|e| TableRepositoryError::Unexpected(Box::new(e)))?;
+
         let sql = r#"
 INSERT INTO table_columns (table_id, column_id, sort_order)
 VALUES ($1, $2, $3)
-ON CONFLICT (table_id, column_id) DO NOTHING
 "#;
+
         for (sort_order, column_id) in table.columns().iter().enumerate() {
             sqlx::query(sql)
-                .bind(table.id().value())
+                .bind(table_id.value())
                 .bind(column_id.value())
                 .bind(sort_order as i32)
                 .execute(&mut *self.conn)
                 .await
                 .map_err(|e| TableRepositoryError::Unexpected(Box::new(e)))?;
         }
-        Ok(())
+
+        Ok(table_id)
     }
 
     pub(super) async fn find_table(
@@ -182,7 +176,7 @@ ORDER BY tc.sort_order
     pub(super) async fn find_parent_table_by_column_id(
         &mut self,
         column_id: &ColumnId,
-    ) -> TableRepositoryResult<Option<Table>> {
+    ) -> TableRepositoryResult<Vec<Table>> {
         todo!()
     }
 
@@ -200,7 +194,7 @@ mod tests {
     use std::collections::HashSet;
 
     use src_domain::models::{
-        column::column_directory::column_directory_id::ColumnDirectoryId,
+        column::{column_directory::column_directory_id::ColumnDirectoryId, column_id},
         table::{table::TableEntityError, table_name::TableName},
     };
 
@@ -229,12 +223,32 @@ mod tests {
     async fn test_save_new_table() -> anyhow::Result<()> {
         let pool = db::create_and_migrate_test_pool().await?;
         let mut tx = pool.begin().await?;
+        // ディレクトリをDBに登録
+        let directory_id = sqlx::query("INSERT INTO directories (name) VALUES ($1) RETURNING id")
+            .bind("test_directory")
+            .fetch_one(&mut *tx)
+            .await?
+            .try_get::<i64, &str>("id")?
+            .to_string();
+        let directory_id = ColumnDirectoryId::new(directory_id)?;
+
+        // カラムをDBに登録
+        let column_id1 =
+            sqlx::query("INSERT INTO columns (name, directory_id) VALUES ($1, $2) RETURNING id")
+                .bind("column_name1")
+                .bind(directory_id.value())
+                .fetch_one(&mut *tx)
+                .await?
+                .try_get::<i64, &str>("id")?
+                .to_string();
+        let column_id1 = ColumnId::new(column_id1)?;
+
         let mut repo = InternalTableRepository::new(&mut tx);
 
         // 新しいテーブルの作成をテスト
         let table = Table::new(
             TableName::new("table_name".to_string())?,
-            vec![ColumnId::new("column_id1".to_string())?],
+            vec![column_id1.clone()],
         )?;
         let table_id = repo.save_table(&table).await?;
 
@@ -242,60 +256,20 @@ mod tests {
         assert!(!table_id.value().is_empty());
 
         // テーブルが保存されていることを確認
-        let tables = sqlx::query_as::<_, TableRow>("SELECT * FROM tables ORDER BY id")
+        let tables_with_column_id = sqlx::query_as::<_, TableRowWithColumnId>("SELECT * FROM tables t LEFT JOIN table_columns tc ON t.id = tc.table_id ORDER BY tc.sort_order")
             .fetch_all(&mut *tx)
             .await?;
-        assert_eq!(tables[0].name, "table_name");
+        assert_eq!(tables_with_column_id.len(), 1);
+        assert_eq!(tables_with_column_id[0].name, "table_name");
+        assert_eq!(
+            tables_with_column_id[0].column_id.map(|c| c.to_string()),
+            Some(column_id1.clone_value())
+        );
         Ok(())
     }
 
     #[tokio::test]
     async fn test_update_table() -> anyhow::Result<()> {
-        let pool = db::create_and_migrate_test_pool().await?;
-        let mut tx = pool.begin().await?;
-
-        // 既存のテーブルをDBに登録
-        let mut table = Table::new(
-            TableName::new("table_name".to_string())?,
-            vec![ColumnId::new("column_id1".to_string())?],
-        )?;
-        let table_id1 = sqlx::query("INSERT INTO tables (name) VALUES ($1) RETURNING id")
-            .bind(table.name().value())
-            .fetch_one(&mut *tx)
-            .await?
-            .try_get::<i64, &str>("id")?
-            .to_string();
-        let table_id1 = TableId::new(table_id1)?;
-        table.set_id(table_id1.clone());
-
-        // テーブルが保存されていることを確認
-        let tables = sqlx::query_as::<_, TableRow>("SELECT * FROM tables ORDER BY id")
-            .fetch_all(&mut *tx)
-            .await?;
-        assert_eq!(tables[0].name, "table_name");
-
-        let mut repo = InternalTableRepository::new(&mut tx);
-
-        // テーブル名を変更
-        table.change_name(TableName::new("new_table_name".to_string())?);
-
-        // テーブルを保存
-        let table_id2 = repo.save_table(&table).await?;
-
-        // テーブル ID が変わっていないことを確認
-        assert_eq!(table_id1, table_id2);
-
-        // テーブルが保存されていることを確認
-        let tables = sqlx::query_as::<_, TableRow>("SELECT * FROM tables ORDER BY id")
-            .fetch_all(&mut *tx)
-            .await?;
-        assert_eq!(tables[0].name, "new_table_name");
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_save_table_columns() -> anyhow::Result<()> {
         let pool = db::create_and_migrate_test_pool().await?;
         let mut tx = pool.begin().await?;
 
@@ -308,17 +282,10 @@ mod tests {
             .to_string();
         let directory_id = ColumnDirectoryId::new(directory_id)?;
 
-        // ディレクトリが保存されていることを確認
-        let directories =
-            sqlx::query_as::<_, DirectoryRow>("SELECT * FROM directories ORDER BY id")
-                .fetch_all(&mut *tx)
-                .await?;
-        assert_eq!(directories[0].name, "test_directory");
-
         // カラムをDBに登録
         let column_id1 =
             sqlx::query("INSERT INTO columns (name, directory_id) VALUES ($1, $2) RETURNING id")
-                .bind("column1")
+                .bind("column_name1")
                 .bind(directory_id.value())
                 .fetch_one(&mut *tx)
                 .await?
@@ -328,7 +295,7 @@ mod tests {
 
         let column_id2 =
             sqlx::query("INSERT INTO columns (name, directory_id) VALUES ($1, $2) RETURNING id")
-                .bind("column2")
+                .bind("column_name2")
                 .bind(directory_id.value())
                 .fetch_one(&mut *tx)
                 .await?
@@ -336,21 +303,12 @@ mod tests {
                 .to_string();
         let column_id2 = ColumnId::new(column_id2)?;
 
-        // カラムが保存されていることを確認
-        let columns = sqlx::query_as::<_, ColumnRow>("SELECT * FROM columns ORDER BY id")
-            .fetch_all(&mut *tx)
-            .await?;
-        assert_eq!(columns.len(), 2);
-        assert_eq!(
-            HashSet::from_iter(columns.into_iter().map(|c| c.name)),
-            HashSet::from(["column1".to_string(), "column2".to_string()])
-        );
-
-        // 既存のテーブルをDBに登録
+        // テーブルをDBに登録
         let mut table = Table::new(
             TableName::new("table_name".to_string())?,
-            vec![column_id1.clone(), column_id2.clone()],
+            vec![column_id1, column_id2],
         )?;
+
         let table_id1 = sqlx::query("INSERT INTO tables (name) VALUES ($1) RETURNING id")
             .bind(table.name().value())
             .fetch_one(&mut *tx)
@@ -366,22 +324,49 @@ mod tests {
             .await?;
         assert_eq!(tables[0].name, "table_name");
 
+        // テーブルカラムをDBに登録
+        for (sort_order, column_id) in table.columns().iter().enumerate() {
+            sqlx::query(
+                "INSERT INTO table_columns (table_id, column_id, sort_order) VALUES ($1, $2, $3)",
+            )
+            .bind(table_id1.value())
+            .bind(column_id.value())
+            .bind(sort_order as i32)
+            .execute(&mut *tx)
+            .await?;
+        }
+
         let mut repo = InternalTableRepository::new(&mut tx);
 
-        repo.save_table_columns(&table).await?;
+        // テーブル名を変更
+        table.change_name(TableName::new("new_table_name".to_string())?);
 
-        let table_columns = sqlx::query_as::<_, TableColumnsRow>("SELECT * FROM table_columns")
-            .fetch_all(&mut *tx)
-            .await?;
-        assert_eq!(table_columns.len(), 2);
+        // カラムを削除
+        let column_id1 = table.columns()[0].clone();
+        let column_id2 = table.columns()[1].clone();
+        table.remove_column(&column_id2);
+
+        // テーブルを保存
+        let table_id2 = repo.save_table(&table).await?;
+
+        // テーブル ID が変わっていないことを確認
+        assert_eq!(table_id1, table_id2);
+
+        // テーブルが保存されていることを確認
+        let table_rows_with_column_id = sqlx::query_as::<_, TableRowWithColumnId>(
+            "SELECT * FROM tables t LEFT JOIN table_columns tc ON t.id = tc.table_id ORDER BY id",
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+        assert_eq!(table_rows_with_column_id[0].name, "new_table_name");
+        assert_eq!(table_rows_with_column_id.len(), 1);
         assert_eq!(
-            HashSet::from_iter(table_columns.iter().map(|tc| tc.column_id.to_string())),
-            HashSet::from([column_id1.clone_value(), column_id2.clone_value()])
+            table_rows_with_column_id[0]
+                .column_id
+                .map(|c| c.to_string()),
+            Some(column_id1.clone_value())
         );
-        assert_eq!(
-            HashSet::from_iter(table_columns.iter().map(|tc| tc.table_id.to_string())),
-            HashSet::from([table_id1.clone_value()])
-        );
+
         Ok(())
     }
 
