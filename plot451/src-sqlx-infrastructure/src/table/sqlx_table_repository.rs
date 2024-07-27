@@ -8,7 +8,9 @@ use src_domain::models::{
     },
 };
 
-struct SqlxTableRepository {
+use super::sqlx_internal_table_repository::InternalTableRepository;
+
+pub struct SqlxTableRepository {
     pool: SqlitePool,
 }
 
@@ -27,25 +29,35 @@ impl SqlxTableRepository {
 
 impl ITableRepository for SqlxTableRepository {
     async fn save(&self, table: &Table) -> TableRepositoryResult<TableId> {
-        todo!()
+        let mut conn = self.connection().await?;
+        let mut internal_table_repository = InternalTableRepository::new(&mut conn);
+        internal_table_repository.save_table(table).await
     }
 
     async fn find(&self, id: &TableId) -> TableRepositoryResult<Option<Table>> {
-        todo!()
+        let mut conn = self.connection().await?;
+        let mut internal_table_repository = InternalTableRepository::new(&mut conn);
+        internal_table_repository.find_table(id).await
     }
 
     async fn find_parent_table_by_column_id(
         &self,
         column_id: &ColumnId,
     ) -> TableRepositoryResult<Vec<Table>> {
-        todo!()
+        let mut conn = self.connection().await?;
+        let mut internal_table_repository = InternalTableRepository::new(&mut conn);
+        internal_table_repository.find_parent_table_by_column_id(column_id).await
     }
 
     async fn find_all(&self) -> TableRepositoryResult<Vec<Table>> {
-        todo!()
+        let mut conn = self.connection().await?;
+        let mut internal_table_repository = InternalTableRepository::new(&mut conn);
+        internal_table_repository.find_all().await
     }
 
     async fn delete(&self, table: Table) -> TableRepositoryResult<()> {
-        todo!()
+        let mut conn = self.connection().await?;
+        let mut internal_table_repository = InternalTableRepository::new(&mut conn);
+        internal_table_repository.delete(table).await
     }
 }

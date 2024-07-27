@@ -12,10 +12,6 @@ use src_domain::{
     shared::value_object::ValueObject,
 };
 
-pub(super) struct InternalTableRepository<'a> {
-    conn: &'a mut SqliteConnection,
-}
-
 struct TableWithColumns {
     table_id: i32,
     table_name: String,
@@ -39,12 +35,6 @@ impl TableWithColumns {
             .map_err(|e| TableRepositoryError::TableEntityError(e))?;
         Ok(table)
     }
-}
-
-#[derive(FromRow)]
-struct TableRow {
-    id: i32,
-    name: String,
 }
 
 #[derive(FromRow)]
@@ -109,6 +99,10 @@ impl<'a> TableRowsWithColumnId<'a> {
             }
         }
     }
+}
+
+pub(super) struct InternalTableRepository<'a> {
+    conn: &'a mut SqliteConnection,
 }
 
 impl<'a> InternalTableRepository<'a> {
@@ -261,12 +255,17 @@ mod tests {
 
     use super::*;
     use crate::db;
+    #[derive(FromRow)]
+    struct TableRow {
+        // id: i32,
+        name: String,
+    }
 
     #[derive(FromRow)]
     struct TableColumnRow {
-        _table_id: i32,
-        _column_id: i32,
-        _sort_order: i32,
+        // table_id: i32,
+        // column_id: i32,
+        // sort_order: i32,
     }
 
     #[tokio::test]
