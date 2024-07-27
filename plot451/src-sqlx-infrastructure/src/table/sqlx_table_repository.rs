@@ -46,7 +46,9 @@ impl ITableRepository for SqlxTableRepository {
     ) -> TableRepositoryResult<Vec<Table>> {
         let mut conn = self.connection().await?;
         let mut internal_table_repository = InternalTableRepository::new(&mut conn);
-        internal_table_repository.find_parent_table_by_column_id(column_id).await
+        internal_table_repository
+            .find_parent_table_by_column_id(column_id)
+            .await
     }
 
     async fn find_all(&self) -> TableRepositoryResult<Vec<Table>> {
