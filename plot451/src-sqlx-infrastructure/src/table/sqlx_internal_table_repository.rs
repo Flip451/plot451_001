@@ -62,6 +62,7 @@ impl<'a> TableRowsWithColumnId<'a> {
         self.0.len()
     }
 
+    // TableRowsWithColumnId を単一の Table に変換する
     fn into_table(self) -> TableRepositoryResult<Table> {
         let Self(rows) = self;
         assert!(rows.len() > 0);
@@ -83,6 +84,7 @@ impl<'a> TableRowsWithColumnId<'a> {
         table_with_columns.into_table()
     }
 
+    // TableRowsWithColumnId を複数 Table に変換する
     fn into_tables(self) -> TableRepositoryResult<Vec<Table>> {
         // このメソッドは、TableRowWithColumnId のスライス内に含まれる行が
         // table_idとsort_orderでソートされていることを前提としている
@@ -221,11 +223,30 @@ ORDER BY t.id, tc.sort_order
     }
 
     pub(super) async fn find_all(&mut self) -> TableRepositoryResult<Vec<Table>> {
-        todo!()
+        let sql = r#"
+SELECT * FROM tables t LEFT JOIN table_columns tc ON t.id = tc.table_id ORDER BY t.id, tc.sort_order
+"#;
+        let rows = sqlx::query_as::<_, TableRowWithColumnId>(sql)
+            .fetch_all(&mut *self.conn)
+            .await
+            .map_err(|e| TableRepositoryError::Unexpected(Box::new(e)))?;
+
+        let rows = TableRowsWithColumnId(&rows[..]);
+
+        rows.into_tables()
     }
 
-    pub(super) async fn delete(&mut self) -> TableRepositoryResult<()> {
-        todo!()
+    pub(super) async fn delete(&mut self, table: Table) -> TableRepositoryResult<()> {
+        let sql = r#"
+DELETE FROM tables WHERE id = $1
+"#;
+        sqlx::query(sql)
+            .bind(table.id().value())
+            .execute(&mut *self.conn)
+            .await
+            .map_err(|e| TableRepositoryError::Unexpected(Box::new(e)))?;
+
+        Ok(())
     }
 }
 
@@ -242,21 +263,10 @@ mod tests {
     use crate::db;
 
     #[derive(FromRow)]
-    struct DirectoryRow {
-        id: i64,
-        name: String,
-    }
-
-    #[derive(FromRow)]
-    struct ColumnRow {
-        id: i64,
-        name: String,
-    }
-
-    #[derive(FromRow)]
-    struct TableColumnsRow {
-        table_id: i64,
-        column_id: i64,
+    struct TableColumnRow {
+        _table_id: i32,
+        _column_id: i32,
+        _sort_order: i32,
     }
 
     #[tokio::test]
@@ -628,16 +638,283 @@ mod tests {
         // 取得されるテーブルは２つ
         assert_eq!(tables.len(), 2);
 
-        // 一つ目のテーブルの確認
+        // 一つ目のテーブルの内容確認
         assert_eq!(tables[0].name().value(), "table_name1");
         assert_eq!(tables[0].columns().len(), 2);
         assert_eq!(tables[0].columns()[0], column_id1);
         assert_eq!(tables[0].columns()[1], column_id2);
 
-        // 二つの目のテーブルの確認
+        // 二つの目のテーブルの内容確認
         assert_eq!(tables[1].name().value(), "table_name2");
         assert_eq!(tables[1].columns().len(), 1);
         assert_eq!(tables[1].columns()[0], column_id1);
+
+        // カラム2 を子に持つテーブルを取得
+        let tables = repo.find_parent_table_by_column_id(&column_id2).await?;
+
+        // 取得されるテーブルは１つ
+        assert_eq!(tables.len(), 1);
+
+        // 取得されたテーブルの内容確認
+        assert_eq!(tables[0].name().value(), "table_name1");
+        assert_eq!(tables[0].columns().len(), 2);
+        assert_eq!(tables[0].columns()[0], column_id1);
+        assert_eq!(tables[0].columns()[1], column_id2);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_find_all() -> anyhow::Result<()> {
+        let pool = db::create_and_migrate_test_pool().await?;
+        let mut tx = pool.begin().await?;
+
+        // ディレクトリをDBに登録
+        let directory_id = sqlx::query("INSERT INTO directories (name) VALUES ($1) RETURNING id")
+            .bind("test_directory")
+            .fetch_one(&mut *tx)
+            .await?
+            .try_get::<i64, &str>("id")?
+            .to_string();
+        let directory_id = ColumnDirectoryId::new(directory_id)?;
+
+        // カラムをDBに登録
+        let column_id1 =
+            sqlx::query("INSERT INTO columns (name, directory_id) VALUES ($1, $2) RETURNING id")
+                .bind("column1")
+                .bind(directory_id.value())
+                .fetch_one(&mut *tx)
+                .await?
+                .try_get::<i64, &str>("id")?
+                .to_string();
+        let column_id1 = ColumnId::new(column_id1)?;
+
+        let column_id2 =
+            sqlx::query("INSERT INTO columns (name, directory_id) VALUES ($1, $2) RETURNING id")
+                .bind("column2")
+                .bind(directory_id.value())
+                .fetch_one(&mut *tx)
+                .await?
+                .try_get::<i64, &str>("id")?
+                .to_string();
+        let column_id2 = ColumnId::new(column_id2)?;
+
+        let column_id3 =
+            sqlx::query("INSERT INTO columns (name, directory_id) VALUES ($1, $2) RETURNING id")
+                .bind("column3")
+                .bind(directory_id.value())
+                .fetch_one(&mut *tx)
+                .await?
+                .try_get::<i64, &str>("id")?
+                .to_string();
+        let column_id3 = ColumnId::new(column_id3)?;
+
+        // テーブルをDBに登録
+        let table_id1 = sqlx::query("INSERT INTO tables (name) VALUES ($1) RETURNING id")
+            .bind("table_name1")
+            .fetch_one(&mut *tx)
+            .await?
+            .try_get::<i64, &str>("id")?
+            .to_string();
+        let table_id1 = TableId::new(table_id1)?;
+
+        let table_id2 = sqlx::query("INSERT INTO tables (name) VALUES ($1) RETURNING id")
+            .bind("table_name2")
+            .fetch_one(&mut *tx)
+            .await?
+            .try_get::<i64, &str>("id")?
+            .to_string();
+        let table_id2 = TableId::new(table_id2)?;
+
+        let table_id3 = sqlx::query("INSERT INTO tables (name) VALUES ($1) RETURNING id")
+            .bind("table_name3")
+            .fetch_one(&mut *tx)
+            .await?
+            .try_get::<i64, &str>("id")?
+            .to_string();
+        let table_id3 = TableId::new(table_id3)?;
+
+        // テーブルが保存されていることを確認
+        let tables = sqlx::query_as::<_, TableRow>("SELECT * FROM tables ORDER BY id")
+            .fetch_all(&mut *tx)
+            .await?;
+        assert_eq!(tables.len(), 3);
+        assert_eq!(tables[0].name, "table_name1");
+        assert_eq!(tables[1].name, "table_name2");
+        assert_eq!(tables[2].name, "table_name3");
+
+        // テーブルカラムをDBに登録
+        // テーブル1 にカラム1, 2 を登録
+        sqlx::query(
+            "INSERT INTO table_columns (table_id, column_id, sort_order) VALUES ($1, $2, $3)",
+        )
+        .bind(table_id1.value())
+        .bind(column_id1.value())
+        .bind(0)
+        .execute(&mut *tx)
+        .await?;
+
+        sqlx::query(
+            "INSERT INTO table_columns (table_id, column_id, sort_order) VALUES ($1, $2, $3)",
+        )
+        .bind(table_id1.value())
+        .bind(column_id2.value())
+        .bind(1)
+        .execute(&mut *tx)
+        .await?;
+
+        // テーブル2 にカラム2, 3 を登録
+        sqlx::query(
+            "INSERT INTO table_columns (table_id, column_id, sort_order) VALUES ($1, $2, $3)",
+        )
+        .bind(table_id2.value())
+        .bind(column_id2.value())
+        .bind(0)
+        .execute(&mut *tx)
+        .await?;
+
+        sqlx::query(
+            "INSERT INTO table_columns (table_id, column_id, sort_order) VALUES ($1, $2, $3)",
+        )
+        .bind(table_id2.value())
+        .bind(column_id3.value())
+        .bind(1)
+        .execute(&mut *tx)
+        .await?;
+
+        // テーブル3 にカラム1, 2, 3 を登録
+        sqlx::query(
+            "INSERT INTO table_columns (table_id, column_id, sort_order) VALUES ($1, $2, $3)",
+        )
+        .bind(table_id3.value())
+        .bind(column_id1.value())
+        .bind(0)
+        .execute(&mut *tx)
+        .await?;
+
+        sqlx::query(
+            "INSERT INTO table_columns (table_id, column_id, sort_order) VALUES ($1, $2, $3)",
+        )
+        .bind(table_id3.value())
+        .bind(column_id2.value())
+        .bind(1)
+        .execute(&mut *tx)
+        .await?;
+
+        sqlx::query(
+            "INSERT INTO table_columns (table_id, column_id, sort_order) VALUES ($1, $2, $3)",
+        )
+        .bind(table_id3.value())
+        .bind(column_id3.value())
+        .bind(2)
+        .execute(&mut *tx)
+        .await?;
+
+        let mut repo = InternalTableRepository::new(&mut tx);
+
+        // 全てのテーブルを取得
+        let tables = repo.find_all().await?;
+
+        // 取得されるテーブルは３つ
+        assert_eq!(tables.len(), 3);
+
+        // 一つ目のテーブルの内容確認
+        assert_eq!(tables[0].name().value(), "table_name1");
+        assert_eq!(tables[0].columns().len(), 2);
+        assert_eq!(tables[0].columns()[0], column_id1);
+        assert_eq!(tables[0].columns()[1], column_id2);
+
+        // 二つの目のテーブルの内容確認
+        assert_eq!(tables[1].name().value(), "table_name2");
+        assert_eq!(tables[1].columns().len(), 2);
+        assert_eq!(tables[1].columns()[0], column_id2);
+        assert_eq!(tables[1].columns()[1], column_id3);
+
+        // 三つの目のテーブルの内容確認
+        assert_eq!(tables[2].name().value(), "table_name3");
+        assert_eq!(tables[2].columns().len(), 3);
+        assert_eq!(tables[2].columns()[0], column_id1);
+        assert_eq!(tables[2].columns()[1], column_id2);
+        assert_eq!(tables[2].columns()[2], column_id3);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_delete() -> anyhow::Result<()> {
+        let pool = db::create_and_migrate_test_pool().await?;
+        let mut tx = pool.begin().await?;
+
+        // ディレクトリをDBに登録
+        let directory_id = sqlx::query("INSERT INTO directories (name) VALUES ($1) RETURNING id")
+            .bind("test_directory")
+            .fetch_one(&mut *tx)
+            .await?
+            .try_get::<i64, &str>("id")?
+            .to_string();
+        let directory_id = ColumnDirectoryId::new(directory_id)?;
+
+        // カラムをDBに登録
+        let column_id1 =
+            sqlx::query("INSERT INTO columns (name, directory_id) VALUES ($1, $2) RETURNING id")
+                .bind("column1")
+                .bind(directory_id.value())
+                .fetch_one(&mut *tx)
+                .await?
+                .try_get::<i64, &str>("id")?
+                .to_string();
+        let column_id1 = ColumnId::new(column_id1)?;
+
+        // テーブルをDBに登録
+        let table_id = sqlx::query("INSERT INTO tables (name) VALUES ($1) RETURNING id")
+            .bind("table_name")
+            .fetch_one(&mut *tx)
+            .await
+            .unwrap()
+            .try_get::<i64, &str>("id")?
+            .to_string();
+        let table_id = TableId::new(table_id)?;
+
+        // テーブルが保存されていることを確認
+        let tables = sqlx::query_as::<_, TableRow>("SELECT * FROM tables ORDER BY id")
+            .fetch_all(&mut *tx)
+            .await?;
+
+        assert_eq!(tables.len(), 1);
+        assert_eq!(tables[0].name, "table_name");
+
+        // テーブルカラムをDBに登録
+        sqlx::query(
+            "INSERT INTO table_columns (table_id, column_id, sort_order) VALUES ($1, $2, $3)",
+        )
+        .bind(table_id.value())
+        .bind(column_id1.value())
+        .bind(0)
+        .execute(&mut *tx)
+        .await?;
+
+        let mut repo = InternalTableRepository::new(&mut tx);
+
+        // テーブルを削除
+        let mut table = Table::new(TableName::new("table_name".to_string())?, vec![column_id1])?;
+        table.set_id(table_id);
+        repo.delete(table).await?;
+
+        // テーブルが削除されていることを確認
+        let tables = sqlx::query_as::<_, TableRow>("SELECT * FROM tables ORDER BY id")
+            .fetch_all(&mut *tx)
+            .await?;
+
+        assert_eq!(tables.len(), 0);
+
+        // テーブルカラムが削除されていることを確認
+        let table_columns = sqlx::query_as::<_, TableColumnRow>(
+            "SELECT * FROM table_columns ORDER BY table_id, sort_order",
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+
+        assert_eq!(table_columns.len(), 0);
 
         Ok(())
     }

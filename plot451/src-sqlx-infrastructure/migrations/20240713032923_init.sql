@@ -36,6 +36,8 @@ CREATE TABLE table_columns (
     sort_order INTEGER NOT NULL,
     PRIMARY KEY (table_id, column_id),
     UNIQUE (table_id, sort_order),
-    FOREIGN KEY (table_id) REFERENCES tables(id),
+    CONSTRAINT table_id
+        FOREIGN KEY (table_id) REFERENCES tables(id)
+        ON DELETE CASCADE,
     FOREIGN KEY (column_id) REFERENCES columns(id)
 );
