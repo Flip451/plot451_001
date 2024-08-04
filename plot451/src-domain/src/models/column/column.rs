@@ -18,15 +18,24 @@ pub struct Column {
 }
 
 impl Column {
+    pub fn new(name: ColumnName, directory: ColumnDirectoryId, cells: Vec<ColumnCellId>) -> Self {
+        Self {
+            id: None,
+            name,
+            directory,
+            cells,
+        }
+    }
+
     // Column の再構築
-    pub fn new(
-        id: Option<ColumnId>,
+    pub fn reconstruct(
+        id: ColumnId,
         name: ColumnName,
         directory: ColumnDirectoryId,
         cells: Vec<ColumnCellId>,
     ) -> Self {
         Self {
-            id,
+            id: Some(id),
             name,
             directory,
             cells,
@@ -138,8 +147,8 @@ mod tests {
         let cell_id1 = ColumnCellId::new("cell_id1".to_string()).unwrap();
         let cell_id2 = ColumnCellId::new("cell_id2".to_string()).unwrap();
         let cell_id3 = ColumnCellId::new("cell_id3".to_string()).unwrap();
-        let mut column = Column::new(
-            Some(column_id),
+        let mut column = Column::reconstruct(
+            column_id,
             column_name,
             directory_id,
             vec![cell_id1.clone(), cell_id2.clone(), cell_id3.clone()],

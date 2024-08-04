@@ -3,9 +3,7 @@ use thiserror::Error;
 use src_domain::models::{
     column::{column_id::ColumnIdError, column_repository::ColumnRepositoryError},
     table::{
-        no_duplicated_column_names_specification::NoDuplicateColumnNameSpecificationError,
-        table_factory::TableFactoryError, table_name::TableNameError,
-        table_repository::TableRepositoryError,
+        no_duplicated_column_names_specification::NoDuplicateColumnNameSpecificationError, table::TableEntityError, table_factory::TableFactoryError, table_name::TableNameError, table_repository::TableRepositoryError
     },
 };
 
@@ -29,6 +27,10 @@ pub enum TableCreateServiceError {
     TableRepositoryError(TableRepositoryError),
     #[error("ColumnRepositoryError: [{0}]")]
     ColumnRepositoryError(ColumnRepositoryError),
+
+    // entity errors
+    #[error("TableEntityError: [{0}]")]
+    TableEntityError(TableEntityError),
 
     // value object errors
     #[error("TableNameError: [{0}]")]

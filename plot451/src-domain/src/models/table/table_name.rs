@@ -11,6 +11,8 @@ pub struct TableName {
 pub enum TableNameError {
     #[error("Table name is empty.")]
     EmptyNameError,
+    #[error("Table name is too long.")]
+    TooLongNameError,
 }
 
 impl ValueObject for TableName {
@@ -21,6 +23,9 @@ impl ValueObject for TableName {
         let value = value.trim();
         if value.is_empty() {
             return Err(TableNameError::EmptyNameError);
+        }
+        if value.len() > 100 {
+            return Err(TableNameError::TooLongNameError);
         }
         Ok(Self {
             value: value.to_string(),

@@ -115,30 +115,30 @@ mod tests {
 
         // 事前にセルを作成しておく
         let cell_id1 = ColumnCellId::new("cell_id_1".to_string())?;
-        let cell1 = ColumnCell::new(Some(cell_id1.clone()), ColumnCellValue::new(Some(1.0))?);
+        let cell1 = ColumnCell::reconstruct(cell_id1.clone(), ColumnCellValue::new(Some(1.0))?);
 
         let cell_id2 = ColumnCellId::new("cell_id_2".to_string())?;
-        let cell2 = ColumnCell::new(Some(cell_id2.clone()), ColumnCellValue::new(Some(2.0))?);
+        let cell2 = ColumnCell::reconstruct(cell_id2.clone(), ColumnCellValue::new(Some(2.0))?);
 
         let cell_id3 = ColumnCellId::new("cell_id_3".to_string())?;
-        let cell3 = ColumnCell::new(Some(cell_id3.clone()), ColumnCellValue::new(Some(3.0))?);
+        let cell3 = ColumnCell::reconstruct(cell_id3.clone(), ColumnCellValue::new(Some(3.0))?);
 
         let cell_id4 = ColumnCellId::new("cell_id_4".to_string())?;
-        let cell4 = ColumnCell::new(Some(cell_id4.clone()), ColumnCellValue::new(None)?);
+        let cell4 = ColumnCell::reconstruct(cell_id4.clone(), ColumnCellValue::new(None)?);
 
         let cell_id5 = ColumnCellId::new("cell_id_5".to_string())?;
-        let cell5 = ColumnCell::new(Some(cell_id5.clone()), ColumnCellValue::new(Some(5.0))?);
+        let cell5 = ColumnCell::reconstruct(cell_id5.clone(), ColumnCellValue::new(Some(5.0))?);
 
         let cell_id6 = ColumnCellId::new("cell_id_6".to_string())?;
-        let cell6 = ColumnCell::new(Some(cell_id6.clone()), ColumnCellValue::new(Some(6.0))?);
+        let cell6 = ColumnCell::reconstruct(cell_id6.clone(), ColumnCellValue::new(Some(6.0))?);
 
         let cell_id7 = ColumnCellId::new("cell_id_7".to_string())?;
-        let cell7 = ColumnCell::new(Some(cell_id7.clone()), ColumnCellValue::new(Some(7.0))?);
+        let cell7 = ColumnCell::reconstruct(cell_id7.clone(), ColumnCellValue::new(Some(7.0))?);
 
         // 事前にカラムを作成しておく
         let column_id1 = ColumnId::new("column_id_1".to_string())?;
-        let column1 = Column::new(
-            Some(column_id1.clone()),
+        let column1 = Column::reconstruct(
+            column_id1.clone(),
             ColumnName::new("column_name_1".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![
@@ -148,8 +148,8 @@ mod tests {
         );
 
         let column_id2 = ColumnId::new("column_id_2".to_string())?;
-        let column2 = Column::new(
-            Some(column_id2.clone()),
+        let column2 = Column::reconstruct(
+            column_id2.clone(),
             ColumnName::new("column_name_2".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![
@@ -159,8 +159,8 @@ mod tests {
         );
 
         let column_id3 = ColumnId::new("column_id_3".to_string())?;
-        let column3 = Column::new(
-            Some(column_id3.clone()),
+        let column3 = Column::reconstruct(
+            column_id3.clone(),
             ColumnName::new("column_name_3".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![
@@ -172,8 +172,8 @@ mod tests {
 
         // 事前にテーブルを作成しておく
         let table_id1 = TableId::new("table_id_1".to_string())?;
-        let table1 = Table::new(
-            Some(table_id1.clone()),
+        let table1 = Table::reconstruct(
+            table_id1.clone(),
             TableName::new("table_name_1".to_string())?,
             vec![
                 column1.id().clone(),
@@ -182,8 +182,8 @@ mod tests {
         )?;
 
         let table_id2 = TableId::new("table_id_2".to_string())?;
-        let table2 = Table::new(
-            Some(table_id2.clone()),
+        let table2 = Table::reconstruct(
+            table_id2.clone(),
             TableName::new("table_name_2".to_string())?,
             vec![
                 column2.id().clone(),

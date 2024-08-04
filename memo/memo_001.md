@@ -27,3 +27,22 @@
     ```bash
     cargo new src-in-memory-infrastructure --vcs none --lib
     ```
+
+7. diesel リポジトリ管理用のクレートの作成
+
+   ```bash
+   cargo new src-diesel-infrastructure --vcs none --lib
+   ```
+
+8. sqlx リポジトリ管理用のクレートの作成
+
+   ```bash
+   cargo new src-sqlx-infrastructure --vcs none --lib
+   ```
+
+9. マイグレーションの作成
+
+      ```bash
+      cargo install sqlx-cli
+      sqlx migrate add init
+      ```

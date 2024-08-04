@@ -62,8 +62,8 @@ mod tests {
         let column_id2 = ColumnId::new("column_id_2".to_string())?;
         let column_id3 = ColumnId::new("column_id_3".to_string())?;
 
-        let table = Table::new(
-            Some(TableId::new("table1".to_string())?),
+        let table = Table::reconstruct(
+            TableId::new("table1".to_string())?,
             TableName::new("table1".to_string())?,
             vec![column_id1.clone(), column_id2.clone(), column_id3.clone()],
         )?;
@@ -71,20 +71,20 @@ mod tests {
         let table_columns = TableColumns::new(
             &table,
             vec![
-                Column::new(
-                    Some(column_id1),
+                Column::reconstruct(
+                    column_id1,
                     ColumnName::new("column1".to_string())?,
                     ColumnDirectoryId::new("0".to_string())?,
                     vec![],
                 ),
-                Column::new(
-                    Some(column_id2),
+                Column::reconstruct(
+                    column_id2,
                     ColumnName::new("column2".to_string())?,
                     ColumnDirectoryId::new("0".to_string())?,
                     vec![],
                 ),
-                Column::new(
-                    Some(column_id3),
+                Column::reconstruct(
+                    column_id3,
                     ColumnName::new("column3".to_string())?,
                     ColumnDirectoryId::new("0".to_string())?,
                     vec![],
@@ -102,8 +102,8 @@ mod tests {
         let column_id2 = ColumnId::new("column_id_2".to_string())?;
         let column_id3 = ColumnId::new("column_id_3".to_string())?;
 
-        let table = Table::new(
-            Some(TableId::new("table1".to_string())?),
+        let table = Table::reconstruct(
+            TableId::new("table1".to_string())?,
             TableName::new("table1".to_string())?,
             vec![column_id1.clone(), column_id2.clone(), column_id3.clone()],
         )?;
@@ -111,20 +111,20 @@ mod tests {
         let table_columns = TableColumns::new(
             &table,
             vec![
-                Column::new(
-                    Some(column_id1),
+                Column::reconstruct(
+                    column_id1,
                     ColumnName::new("column1".to_string())?,
                     ColumnDirectoryId::new("0".to_string())?,
                     vec![],
                 ),
-                Column::new(
-                    Some(column_id2),
+                Column::reconstruct(
+                    column_id2,
                     ColumnName::new("column2".to_string())?,
                     ColumnDirectoryId::new("0".to_string())?,
                     vec![],
                 ),
-                Column::new(
-                    Some(column_id3),
+                Column::reconstruct(
+                    column_id3,
                     ColumnName::new("column1".to_string())?,
                     ColumnDirectoryId::new("0".to_string())?,
                     vec![],

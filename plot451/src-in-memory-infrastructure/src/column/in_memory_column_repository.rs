@@ -285,7 +285,6 @@ mod tests {
     async fn test_save_with_none_id() -> anyhow::Result<()> {
         let repository = InMemoryColumnRepository::new();
         let mut column = Column::new(
-            None,
             ColumnName::new("column_name1".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![],
@@ -302,8 +301,8 @@ mod tests {
         let repository = InMemoryColumnRepository::new();
 
         // 保存用のカラムの作成
-        let column = Column::new(
-            Some(ColumnId::new("1".to_string())?),
+        let column = Column::reconstruct(
+            ColumnId::new("1".to_string())?,
             ColumnName::new("column_name1".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![],
@@ -324,8 +323,8 @@ mod tests {
 
         // ストア内に保存するデータの作成
         let column_id = ColumnId::new("1".to_string())?;
-        let column = Column::new(
-            Some(column_id.clone()),
+        let column = Column::reconstruct(
+            column_id.clone(),
             ColumnName::new("column_name1".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![],
@@ -357,24 +356,24 @@ mod tests {
 
         // ストア内に保存するデータの作成
         let column_id1 = ColumnId::new("1".to_string())?;
-        let column1 = Column::new(
-            Some(column_id1.clone()),
+        let column1 = Column::reconstruct(
+            column_id1.clone(),
             ColumnName::new("column_name1".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![],
         );
 
         let column_id2 = ColumnId::new("2".to_string())?;
-        let column2 = Column::new(
-            Some(column_id2.clone()),
+        let column2 = Column::reconstruct(
+            column_id2.clone(),
             ColumnName::new("column_name2".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![],
         );
 
         let column_id3 = ColumnId::new("3".to_string())?;
-        let column3 = Column::new(
-            Some(column_id3.clone()),
+        let column3 = Column::reconstruct(
+            column_id3.clone(),
             ColumnName::new("column_name3".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![],
@@ -408,24 +407,24 @@ mod tests {
 
         // ストア内に保存するデータの作成
         let column_id1 = ColumnId::new("1".to_string())?;
-        let column1 = Column::new(
-            Some(column_id1.clone()),
+        let column1 = Column::reconstruct(
+            column_id1.clone(),
             ColumnName::new("column_name1".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![],
         );
 
         let column_id2 = ColumnId::new("2".to_string())?;
-        let column2 = Column::new(
-            Some(column_id2.clone()),
+        let column2 = Column::reconstruct(
+            column_id2.clone(),
             ColumnName::new("column_name2".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![],
         );
 
         let column_id3 = ColumnId::new("3".to_string())?;
-        let column3 = Column::new(
-            Some(column_id3.clone()),
+        let column3 = Column::reconstruct(
+            column_id3.clone(),
             ColumnName::new("column_name3".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![],
@@ -474,24 +473,24 @@ mod tests {
 
         // ストア内に保存するデータの作成
         let column_id1 = ColumnId::new("1".to_string())?;
-        let column1 = Column::new(
-            Some(column_id1.clone()),
+        let column1 = Column::reconstruct(
+            column_id1.clone(),
             ColumnName::new("column_name1".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![],
         );
 
         let column_id2 = ColumnId::new("2".to_string())?;
-        let column2 = Column::new(
-            Some(column_id2.clone()),
+        let column2 = Column::reconstruct(
+            column_id2.clone(),
             ColumnName::new("column_name2".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![],
         );
 
         let column_id3 = ColumnId::new("3".to_string())?;
-        let column3 = Column::new(
-            Some(column_id3.clone()),
+        let column3 = Column::reconstruct(
+            column_id3.clone(),
             ColumnName::new("column_name3".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![],
@@ -527,43 +526,43 @@ mod tests {
         // ストア内に保存するデータの作成
         // 1. セル
         let cell_id1 = ColumnCellId::new("1".to_string())?;
-        let cell1 = ColumnCell::new(Some(cell_id1.clone()), ColumnCellValue::new(Some(1.0))?);
+        let cell1 = ColumnCell::reconstruct(cell_id1.clone(), ColumnCellValue::new(Some(1.0))?);
 
         let cell_id2 = ColumnCellId::new("2".to_string())?;
-        let cell2 = ColumnCell::new(Some(cell_id2.clone()), ColumnCellValue::new(Some(2.0))?);
+        let cell2 = ColumnCell::reconstruct(cell_id2.clone(), ColumnCellValue::new(Some(2.0))?);
 
         let cell_id3 = ColumnCellId::new("3".to_string())?;
-        let cell3 = ColumnCell::new(Some(cell_id3.clone()), ColumnCellValue::new(Some(3.0))?);
+        let cell3 = ColumnCell::reconstruct(cell_id3.clone(), ColumnCellValue::new(Some(3.0))?);
 
         let cell_id4 = ColumnCellId::new("4".to_string())?;
-        let cell4 = ColumnCell::new(Some(cell_id4.clone()), ColumnCellValue::new(None)?);
+        let cell4 = ColumnCell::reconstruct(cell_id4.clone(), ColumnCellValue::new(None)?);
 
         let cell_id5 = ColumnCellId::new("5".to_string())?;
-        let cell5 = ColumnCell::new(Some(cell_id5.clone()), ColumnCellValue::new(Some(5.0))?);
+        let cell5 = ColumnCell::reconstruct(cell_id5.clone(), ColumnCellValue::new(Some(5.0))?);
 
         let cell_id6 = ColumnCellId::new("6".to_string())?;
-        let cell6 = ColumnCell::new(Some(cell_id6.clone()), ColumnCellValue::new(None)?);
+        let cell6 = ColumnCell::reconstruct(cell_id6.clone(), ColumnCellValue::new(None)?);
 
         // 2. カラム
         let column_id1 = ColumnId::new("1".to_string())?;
-        let column1 = Column::new(
-            Some(column_id1.clone()),
+        let column1 = Column::reconstruct(
+            column_id1.clone(),
             ColumnName::new("column_name1".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![cell_id1.clone(), cell_id2.clone()],
         );
 
         let column_id2 = ColumnId::new("2".to_string())?;
-        let column2 = Column::new(
-            Some(column_id2.clone()),
+        let column2 = Column::reconstruct(
+            column_id2.clone(),
             ColumnName::new("column_name2".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![cell_id3.clone(), cell_id4.clone()],
         );
 
         let column_id3 = ColumnId::new("3".to_string())?;
-        let column3 = Column::new(
-            Some(column_id3.clone()),
+        let column3 = Column::reconstruct(
+            column_id3.clone(),
             ColumnName::new("column_name3".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![cell_id5.clone(), cell_id6.clone()],
@@ -616,7 +615,7 @@ mod tests {
     async fn test_save_cell_with_none_id() -> anyhow::Result<()> {
         let repository = InMemoryColumnRepository::new();
         // 保存用のセルの作成
-        let mut cell = ColumnCell::new(None, ColumnCellValue::new(Some(1.0))?);
+        let mut cell = ColumnCell::new(ColumnCellValue::new(Some(1.0))?);
 
         // save_cell メソッドのテスト
         let id = repository.save_cell(&cell).await.unwrap();
@@ -633,8 +632,8 @@ mod tests {
         let repository = InMemoryColumnRepository::new();
 
         // 保存用のセルの作成
-        let cell = ColumnCell::new(
-            Some(ColumnCellId::new("1".to_string())?),
+        let cell = ColumnCell::reconstruct(
+            ColumnCellId::new("1".to_string())?,
             ColumnCellValue::new(Some(1.0))?,
         );
 
@@ -653,7 +652,7 @@ mod tests {
 
         // 保存用のセルの作成
         let cell_id = ColumnCellId::new("1".to_string())?;
-        let cell = ColumnCell::new(Some(cell_id.clone()), ColumnCellValue::new(Some(1.0))?);
+        let cell = ColumnCell::reconstruct(cell_id.clone(), ColumnCellValue::new(Some(1.0))?);
 
         // ストアにデータを保存
         {
@@ -674,11 +673,11 @@ mod tests {
         // ストア内に保存するデータの作成
         let column_id = ColumnId::new("1".to_string())?;
         let cell_id1 = ColumnCellId::new("1".to_string())?;
-        let cell1 = ColumnCell::new(Some(cell_id1.clone()), ColumnCellValue::new(Some(1.0))?);
+        let cell1 = ColumnCell::reconstruct(cell_id1.clone(), ColumnCellValue::new(Some(1.0))?);
         let cell_id2 = ColumnCellId::new("2".to_string())?;
-        let cell2 = ColumnCell::new(Some(cell_id2.clone()), ColumnCellValue::new(Some(2.0))?);
+        let cell2 = ColumnCell::reconstruct(cell_id2.clone(), ColumnCellValue::new(Some(2.0))?);
         let cell_id3 = ColumnCellId::new("3".to_string())?;
-        let cell3 = ColumnCell::new(Some(cell_id3.clone()), ColumnCellValue::new(Some(3.0))?);
+        let cell3 = ColumnCell::reconstruct(cell_id3.clone(), ColumnCellValue::new(Some(3.0))?);
 
         // ストアにデータを保存
         {
@@ -688,8 +687,8 @@ mod tests {
             store.cell_store.insert(cell_id3.clone(), cell3.clone());
             store.column_store.insert(
                 column_id.clone(),
-                Column::new(
-                    Some(column_id.clone()),
+                Column::reconstruct(
+                    column_id.clone(),
                     ColumnName::new("column_name1".to_string())?,
                     ColumnDirectoryId::new("0".to_string())?,
                     vec![cell_id1.clone(), cell_id2.clone(), cell_id3.clone()],
@@ -712,13 +711,13 @@ mod tests {
 
         // ストア内に保存するデータの作成
         let cell_id1 = ColumnCellId::new("1".to_string())?;
-        let cell1 = ColumnCell::new(Some(cell_id1.clone()), ColumnCellValue::new(Some(1.0))?);
+        let cell1 = ColumnCell::reconstruct(cell_id1.clone(), ColumnCellValue::new(Some(1.0))?);
 
         let cell_id2 = ColumnCellId::new("2".to_string())?;
-        let cell2 = ColumnCell::new(Some(cell_id2.clone()), ColumnCellValue::new(Some(2.0))?);
+        let cell2 = ColumnCell::reconstruct(cell_id2.clone(), ColumnCellValue::new(Some(2.0))?);
 
         let cell_id3 = ColumnCellId::new("3".to_string())?;
-        let cell3 = ColumnCell::new(Some(cell_id3.clone()), ColumnCellValue::new(Some(3.0))?);
+        let cell3 = ColumnCell::reconstruct(cell_id3.clone(), ColumnCellValue::new(Some(3.0))?);
 
         // ストアにデータを保存
         {
@@ -742,13 +741,13 @@ mod tests {
 
         // ストア内に保存するデータの作成
         let cell_id1 = ColumnCellId::new("1".to_string())?;
-        let cell1 = ColumnCell::new(Some(cell_id1.clone()), ColumnCellValue::new(Some(1.0))?);
+        let cell1 = ColumnCell::reconstruct(cell_id1.clone(), ColumnCellValue::new(Some(1.0))?);
 
         let cell_id2 = ColumnCellId::new("2".to_string())?;
-        let cell2 = ColumnCell::new(Some(cell_id2.clone()), ColumnCellValue::new(Some(2.0))?);
+        let cell2 = ColumnCell::reconstruct(cell_id2.clone(), ColumnCellValue::new(Some(2.0))?);
 
         let cell_id3 = ColumnCellId::new("3".to_string())?;
-        let cell3 = ColumnCell::new(Some(cell_id3.clone()), ColumnCellValue::new(Some(3.0))?);
+        let cell3 = ColumnCell::reconstruct(cell_id3.clone(), ColumnCellValue::new(Some(3.0))?);
 
         // ストアにデータを保存
         {
@@ -774,24 +773,24 @@ mod tests {
         // ストア内に保存するデータの作成
         let directory_id = ColumnDirectoryId::new("1".to_string())?;
         let column_id1 = ColumnId::new("1".to_string())?;
-        let column1 = Column::new(
-            Some(column_id1.clone()),
+        let column1 = Column::reconstruct(
+            column_id1.clone(),
             ColumnName::new("column_name1".to_string())?,
             directory_id.clone(),
             vec![],
         );
 
         let column_id2 = ColumnId::new("2".to_string())?;
-        let column2 = Column::new(
-            Some(column_id2.clone()),
+        let column2 = Column::reconstruct(
+            column_id2.clone(),
             ColumnName::new("column_name2".to_string())?,
             directory_id.clone(),
             vec![],
         );
 
         let column_id3 = ColumnId::new("3".to_string())?;
-        let column3 = Column::new(
-            Some(column_id3.clone()),
+        let column3 = Column::reconstruct(
+            column_id3.clone(),
             ColumnName::new("column_name3".to_string())?,
             ColumnDirectoryId::new("0".to_string())?,
             vec![],
@@ -826,7 +825,6 @@ mod tests {
 
         // 保存用のディレクトリの作成
         let mut directory = ColumnDirectory::new(
-            None,
             ColumnDirectoryName::new("directory_name1".to_string())?,
             None,
         );
@@ -845,8 +843,8 @@ mod tests {
         let repository = InMemoryColumnRepository::new();
 
         // 保存用のディレクトリの作成
-        let directory = ColumnDirectory::new(
-            Some(ColumnDirectoryId::new("1".to_string())?),
+        let directory = ColumnDirectory::reconstruct(
+            ColumnDirectoryId::new("1".to_string())?,
             ColumnDirectoryName::new("directory_name1".to_string())?,
             None,
         );
@@ -865,8 +863,8 @@ mod tests {
 
         // ストア内に保存するデータの作成
         let directory_id = ColumnDirectoryId::new("1".to_string())?;
-        let directory = ColumnDirectory::new(
-            Some(directory_id.clone()),
+        let directory = ColumnDirectory::reconstruct(
+            directory_id.clone(),
             ColumnDirectoryName::new("directory_name1".to_string())?,
             None,
         );
@@ -904,29 +902,29 @@ mod tests {
 
         // ストア内に保存するデータの作成
         let directory_id1 = ColumnDirectoryId::new("1".to_string())?;
-        let directory1 = ColumnDirectory::new(
-            Some(directory_id1.clone()),
+        let directory1 = ColumnDirectory::reconstruct(
+            directory_id1.clone(),
             ColumnDirectoryName::new("directory_name1".to_string())?,
             None,
         );
 
         let directory_id2 = ColumnDirectoryId::new("2".to_string())?;
-        let directory2 = ColumnDirectory::new(
-            Some(directory_id2.clone()),
+        let directory2 = ColumnDirectory::reconstruct(
+            directory_id2.clone(),
             ColumnDirectoryName::new("directory_name2".to_string())?,
             Some(directory_id1.clone()),
         );
 
         let directory_id3 = ColumnDirectoryId::new("3".to_string())?;
-        let directory3 = ColumnDirectory::new(
-            Some(directory_id3.clone()),
+        let directory3 = ColumnDirectory::reconstruct(
+            directory_id3.clone(),
             ColumnDirectoryName::new("directory_name3".to_string())?,
             Some(directory_id1.clone()),
         );
 
         let directory_id4 = ColumnDirectoryId::new("4".to_string())?;
-        let directory4 = ColumnDirectory::new(
-            Some(directory_id4.clone()),
+        let directory4 = ColumnDirectory::reconstruct(
+            directory_id4.clone(),
             ColumnDirectoryName::new("directory_name4".to_string())?,
             None,
         );
@@ -972,65 +970,65 @@ mod tests {
         // ストア内に保存するデータの作成
         // 1. ディレクトリ
         let directory_id1 = ColumnDirectoryId::new("1".to_string())?;
-        let directory1 = ColumnDirectory::new(
-            Some(directory_id1.clone()),
+        let directory1 = ColumnDirectory::reconstruct(
+            directory_id1.clone(),
             ColumnDirectoryName::new("directory_name1".to_string())?,
             None,
         );
 
         let directory_id2 = ColumnDirectoryId::new("2".to_string())?;
-        let directory2 = ColumnDirectory::new(
-            Some(directory_id2.clone()),
+        let directory2 = ColumnDirectory::reconstruct(
+            directory_id2.clone(),
             ColumnDirectoryName::new("directory_name2".to_string())?,
             Some(directory_id1.clone()),
         );
 
         let directory_id3 = ColumnDirectoryId::new("3".to_string())?;
-        let directory3 = ColumnDirectory::new(
-            Some(directory_id3.clone()),
+        let directory3 = ColumnDirectory::reconstruct(
+            directory_id3.clone(),
             ColumnDirectoryName::new("directory_name3".to_string())?,
             None,
         );
 
         // 2. セル
         let cell_id1 = ColumnCellId::new("1".to_string())?;
-        let cell1 = ColumnCell::new(Some(cell_id1.clone()), ColumnCellValue::new(Some(1.0))?);
+        let cell1 = ColumnCell::reconstruct(cell_id1.clone(), ColumnCellValue::new(Some(1.0))?);
 
         let cell_id2 = ColumnCellId::new("2".to_string())?;
-        let cell2 = ColumnCell::new(Some(cell_id2.clone()), ColumnCellValue::new(Some(2.0))?);
+        let cell2 = ColumnCell::reconstruct(cell_id2.clone(), ColumnCellValue::new(Some(2.0))?);
 
         let cell_id3 = ColumnCellId::new("3".to_string())?;
-        let cell3 = ColumnCell::new(Some(cell_id3.clone()), ColumnCellValue::new(Some(3.0))?);
+        let cell3 = ColumnCell::reconstruct(cell_id3.clone(), ColumnCellValue::new(Some(3.0))?);
 
         let cell_id4 = ColumnCellId::new("4".to_string())?;
-        let cell4 = ColumnCell::new(Some(cell_id4.clone()), ColumnCellValue::new(None)?);
+        let cell4 = ColumnCell::reconstruct(cell_id4.clone(), ColumnCellValue::new(None)?);
 
         let cell_id5 = ColumnCellId::new("5".to_string())?;
-        let cell5 = ColumnCell::new(Some(cell_id5.clone()), ColumnCellValue::new(Some(5.0))?);
+        let cell5 = ColumnCell::reconstruct(cell_id5.clone(), ColumnCellValue::new(Some(5.0))?);
 
         let cell_id6 = ColumnCellId::new("6".to_string())?;
-        let cell6 = ColumnCell::new(Some(cell_id6.clone()), ColumnCellValue::new(None)?);
+        let cell6 = ColumnCell::reconstruct(cell_id6.clone(), ColumnCellValue::new(None)?);
 
         // 3. カラム
         let column_id1 = ColumnId::new("1".to_string())?;
-        let column1 = Column::new(
-            Some(column_id1.clone()),
+        let column1 = Column::reconstruct(
+            column_id1.clone(),
             ColumnName::new("column_name1".to_string())?,
             directory_id2.clone(),
             vec![cell_id1.clone(), cell_id2.clone()],
         );
 
         let column_id2 = ColumnId::new("2".to_string())?;
-        let column2 = Column::new(
-            Some(column_id2.clone()),
+        let column2 = Column::reconstruct(
+            column_id2.clone(),
             ColumnName::new("column_name2".to_string())?,
             directory_id1.clone(),
             vec![cell_id3.clone(), cell_id4.clone()],
         );
 
         let column_id3 = ColumnId::new("3".to_string())?;
-        let column3 = Column::new(
-            Some(column_id3.clone()),
+        let column3 = Column::reconstruct(
+            column_id3.clone(),
             ColumnName::new("column_name3".to_string())?,
             directory_id3.clone(),
             vec![cell_id5.clone(), cell_id6.clone()],

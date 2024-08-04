@@ -11,9 +11,19 @@ pub struct ColumnCell {
 }
 
 impl ColumnCell {
+    pub fn new(cell_value: ColumnCellValue) -> Self {
+        Self {
+            id: None,
+            cell_value,
+        }
+    }
+
     // ColumnCell の再構築
-    pub fn new(id: Option<ColumnCellId>, cell_value: ColumnCellValue) -> Self {
-        Self { id, cell_value }
+    pub fn reconstruct(id: ColumnCellId, cell_value: ColumnCellValue) -> Self {
+        Self {
+            id: Some(id),
+            cell_value,
+        }
     }
 
     // getter & setter
